@@ -1,57 +1,86 @@
-# mypy: ignore-errors
-from ai_software_factory.models import QAVerdict, ReviewVerdict
+from ai_software_factory.models import QAVerdict, ReviewVerdict, WorkflowStatus
 
-VALID_TRANSITIONS = {
-    "NEW": {"DISCOVERY_RUNNING"},
-    "DISCOVERY_RUNNING": {"WAITING_FOR_CLARIFICATION", "WAITING_FOR_SPEC_APPROVAL", "FAILED"},
-    "WAITING_FOR_CLARIFICATION": {"DISCOVERY_RUNNING"},
-    "WAITING_FOR_SPEC_APPROVAL": {"KNOWLEDGE_UPDATING", "DISCOVERY_RUNNING", "REJECTED"},
-    "KNOWLEDGE_UPDATING": {"DESIGN_RUNNING", "WAITING_FOR_PRODUCT_ACCEPTANCE", "COMPLETED"},
-    "DESIGN_RUNNING": {"WAITING_FOR_DESIGN_APPROVAL", "PLANNING_RUNNING", "FAILED"},
-    "WAITING_FOR_DESIGN_APPROVAL": {"PLANNING_RUNNING", "DESIGN_RUNNING", "REJECTED"},
-    "PLANNING_RUNNING": {"WAITING_FOR_BACKLOG_APPROVAL", "FAILED"},
-    "WAITING_FOR_BACKLOG_APPROVAL": {"DEVELOPMENT_RUNNING", "PLANNING_RUNNING", "REJECTED"},
-    "DEVELOPMENT_RUNNING": {"QA_RUNNING", "FAILED"},
-    "QA_RUNNING": {
-        "REVIEW_RUNNING",
-        "DEVELOPMENT_RUNNING",
-        "WAITING_FOR_PRODUCT_ACCEPTANCE",
-        "DESIGN_RUNNING",
+VALID_TRANSITIONS: dict[WorkflowStatus, set[WorkflowStatus]] = {
+    WorkflowStatus.NEW: {WorkflowStatus.DISCOVERY_RUNNING},
+    WorkflowStatus.DISCOVERY_RUNNING: {
+        WorkflowStatus.WAITING_FOR_CLARIFICATION,
+        WorkflowStatus.WAITING_FOR_SPEC_APPROVAL,
+        WorkflowStatus.FAILED,
     },
-    "REVIEW_RUNNING": {
-        "KNOWLEDGE_UPDATING",
-        "DEVELOPMENT_RUNNING",
-        "DESIGN_RUNNING",
-        "WAITING_FOR_PRODUCT_ACCEPTANCE",
+    WorkflowStatus.WAITING_FOR_CLARIFICATION: {WorkflowStatus.DISCOVERY_RUNNING},
+    WorkflowStatus.WAITING_FOR_SPEC_APPROVAL: {
+        WorkflowStatus.KNOWLEDGE_UPDATING,
+        WorkflowStatus.DISCOVERY_RUNNING,
+        WorkflowStatus.REJECTED,
     },
-    "WAITING_FOR_PRODUCT_ACCEPTANCE": {"COMPLETED", "REJECTED"},
-    "COMPLETED": set(),
-    "REJECTED": set(),
-    "BLOCKED": set(),
-    "FAILED": set(),
+    WorkflowStatus.KNOWLEDGE_UPDATING: {
+        WorkflowStatus.DESIGN_RUNNING,
+        WorkflowStatus.WAITING_FOR_PRODUCT_ACCEPTANCE,
+        WorkflowStatus.COMPLETED,
+    },
+    WorkflowStatus.DESIGN_RUNNING: {
+        WorkflowStatus.WAITING_FOR_DESIGN_APPROVAL,
+        WorkflowStatus.PLANNING_RUNNING,
+        WorkflowStatus.FAILED,
+    },
+    WorkflowStatus.WAITING_FOR_DESIGN_APPROVAL: {
+        WorkflowStatus.PLANNING_RUNNING,
+        WorkflowStatus.DESIGN_RUNNING,
+        WorkflowStatus.REJECTED,
+    },
+    WorkflowStatus.PLANNING_RUNNING: {
+        WorkflowStatus.WAITING_FOR_BACKLOG_APPROVAL,
+        WorkflowStatus.FAILED,
+    },
+    WorkflowStatus.WAITING_FOR_BACKLOG_APPROVAL: {
+        WorkflowStatus.DEVELOPMENT_RUNNING,
+        WorkflowStatus.PLANNING_RUNNING,
+        WorkflowStatus.REJECTED,
+    },
+    WorkflowStatus.DEVELOPMENT_RUNNING: {WorkflowStatus.QA_RUNNING, WorkflowStatus.FAILED},
+    WorkflowStatus.QA_RUNNING: {
+        WorkflowStatus.REVIEW_RUNNING,
+        WorkflowStatus.DEVELOPMENT_RUNNING,
+        WorkflowStatus.WAITING_FOR_PRODUCT_ACCEPTANCE,
+        WorkflowStatus.DESIGN_RUNNING,
+    },
+    WorkflowStatus.REVIEW_RUNNING: {
+        WorkflowStatus.KNOWLEDGE_UPDATING,
+        WorkflowStatus.DEVELOPMENT_RUNNING,
+        WorkflowStatus.DESIGN_RUNNING,
+        WorkflowStatus.WAITING_FOR_PRODUCT_ACCEPTANCE,
+    },
+    WorkflowStatus.WAITING_FOR_PRODUCT_ACCEPTANCE: {
+        WorkflowStatus.COMPLETED,
+        WorkflowStatus.REJECTED,
+    },
+    WorkflowStatus.COMPLETED: set(),
+    WorkflowStatus.REJECTED: set(),
+    WorkflowStatus.BLOCKED: set(),
+    WorkflowStatus.FAILED: set(),
 }
 
 
-def assert_transition(current: str, target: str) -> None:
+def assert_transition(current: WorkflowStatus, target: WorkflowStatus) -> None:
     if target not in VALID_TRANSITIONS.get(current, set()):
         raise ValueError(f"Invalid transition {current}->{target}")
 
 
-def route_qa(verdict: QAVerdict, warnings_need_human: bool = False) -> str:
+def route_qa(verdict: QAVerdict, warnings_need_human: bool = False) -> WorkflowStatus:
     return {
-        QAVerdict.PASSED: "REVIEW_RUNNING",
-        QAVerdict.PASSED_WITH_WARNINGS: "WAITING_FOR_PRODUCT_ACCEPTANCE"
+        QAVerdict.PASSED: WorkflowStatus.REVIEW_RUNNING,
+        QAVerdict.PASSED_WITH_WARNINGS: WorkflowStatus.WAITING_FOR_PRODUCT_ACCEPTANCE
         if warnings_need_human
-        else "REVIEW_RUNNING",
-        QAVerdict.FAILED: "DEVELOPMENT_RUNNING",
-        QAVerdict.BLOCKED: "WAITING_FOR_PRODUCT_ACCEPTANCE",
+        else WorkflowStatus.REVIEW_RUNNING,
+        QAVerdict.FAILED: WorkflowStatus.DEVELOPMENT_RUNNING,
+        QAVerdict.BLOCKED: WorkflowStatus.WAITING_FOR_PRODUCT_ACCEPTANCE,
     }[verdict]
 
 
-def route_review(verdict: ReviewVerdict) -> str:
+def route_review(verdict: ReviewVerdict) -> WorkflowStatus:
     return {
-        ReviewVerdict.APPROVED: "KNOWLEDGE_UPDATING",
-        ReviewVerdict.APPROVED_WITH_FOLLOW_UP: "KNOWLEDGE_UPDATING",
-        ReviewVerdict.CHANGES_REQUESTED: "DEVELOPMENT_RUNNING",
-        ReviewVerdict.REJECTED: "DESIGN_RUNNING",
+        ReviewVerdict.APPROVED: WorkflowStatus.KNOWLEDGE_UPDATING,
+        ReviewVerdict.APPROVED_WITH_FOLLOW_UP: WorkflowStatus.KNOWLEDGE_UPDATING,
+        ReviewVerdict.CHANGES_REQUESTED: WorkflowStatus.DEVELOPMENT_RUNNING,
+        ReviewVerdict.REJECTED: WorkflowStatus.DESIGN_RUNNING,
     }[verdict]

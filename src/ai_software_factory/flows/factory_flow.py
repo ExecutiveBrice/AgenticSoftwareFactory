@@ -1,7 +1,6 @@
-# mypy: ignore-errors
 from pathlib import Path
 
-from ai_software_factory.models import WorkflowState
+from ai_software_factory.models import WorkflowState, WorkflowStatus
 from ai_software_factory.services import IdentifierService
 
 from .persistence import StateStore
@@ -18,14 +17,14 @@ class FactoryFlow:
         state = WorkflowState(
             request_id=self.ids.request_id(),
             repository_path=self.repository_path,
-            current_stage="DISCOVERY_RUNNING",
-            status="DISCOVERY_RUNNING",
+            current_stage=WorkflowStatus.DISCOVERY_RUNNING,
+            status=WorkflowStatus.DISCOVERY_RUNNING,
             transition_history=[f"NEW->DISCOVERY_RUNNING: {raw_request}"],
         )
         self.store.save(state)
         return state
 
-    def transition(self, state: WorkflowState, target: str) -> WorkflowState:
+    def transition(self, state: WorkflowState, target: WorkflowStatus) -> WorkflowState:
         assert_transition(state.status, target)
         state.transition_history.append(f"{state.status}->{target}")
         state.status = target

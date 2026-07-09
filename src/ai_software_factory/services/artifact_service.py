@@ -1,4 +1,3 @@
-# mypy: ignore-errors
 from pathlib import Path
 
 from ai_software_factory.models import ArtifactReference

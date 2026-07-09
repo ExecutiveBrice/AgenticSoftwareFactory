@@ -1,8 +1,7 @@
-# mypy: ignore-errors
 from pathlib import Path
 
 from ai_software_factory.crews.shared.validation import load_crew_definition
-from ai_software_factory.models import CrewDefinition, CrewExecutionResult
+from ai_software_factory.models import CrewDefinition, CrewExecutionResult, CrewExecutionStatus
 from ai_software_factory.services import ArtifactService
 
 
@@ -22,4 +21,6 @@ class BaseCrew:
             raise PermissionError(relative_path)
 
     def kickoff(self, **kwargs: str) -> CrewExecutionResult:
-        return CrewExecutionResult(crew_id=self.crew_id, status="COMPLETED", message=str(kwargs))
+        return CrewExecutionResult(
+            crew_id=self.crew_id, status=CrewExecutionStatus.COMPLETED, message=str(kwargs)
+        )

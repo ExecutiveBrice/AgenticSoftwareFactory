@@ -1,4 +1,3 @@
-# mypy: ignore-errors
 from pathlib import Path
 
 
@@ -11,7 +10,7 @@ class NoSuchPathError(Exception):
 
 
 class Repo:
-    def __init__(self, path, search_parent_directories=False):
+    def __init__(self, path: str | Path, search_parent_directories: bool = False) -> None:
         p = Path(path).resolve()
         cur = p
         while True:

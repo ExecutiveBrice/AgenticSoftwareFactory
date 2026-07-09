@@ -1,13 +1,19 @@
-# mypy: ignore-errors
+from collections.abc import Callable
+
+Command = Callable[..., None]
+
+
 class Typer:
-    def __init__(self, name=None, help=None, no_args_is_help=False):
+    def __init__(
+        self, name: str | None = None, help: str | None = None, no_args_is_help: bool = False
+    ) -> None:
         self.name = name
         self.help = help or ""
-        self.commands = {}
+        self.commands: dict[str, Command] = {}
         self.no_args_is_help = no_args_is_help
 
-    def command(self, name=None):
-        def deco(fn):
+    def command(self, name: str | None = None) -> Callable[[Command], Command]:
+        def deco(fn: Command) -> Command:
             self.commands[name or fn.__name__.replace("_", "-")] = fn
             return fn
 
@@ -23,5 +29,5 @@ class Typer:
         raise SystemExit(result.exit_code)
 
 
-def echo(msg=""):
+def echo(msg: object = "") -> None:
     print(msg)

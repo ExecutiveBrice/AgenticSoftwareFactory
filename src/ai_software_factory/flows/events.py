@@ -1,4 +1,3 @@
-# mypy: ignore-errors
 from pydantic import BaseModel, ConfigDict
 
 

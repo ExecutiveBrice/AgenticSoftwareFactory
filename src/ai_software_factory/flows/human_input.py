@@ -1,4 +1,3 @@
-# mypy: ignore-errors
 from ai_software_factory.models import HumanValidationRequest, HumanValidationResponse
 
 

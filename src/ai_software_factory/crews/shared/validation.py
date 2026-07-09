@@ -1,4 +1,3 @@
-# mypy: ignore-errors
 from importlib import resources
 
 from ai_software_factory.models import AgentDefinition, CrewDefinition, TaskDefinition

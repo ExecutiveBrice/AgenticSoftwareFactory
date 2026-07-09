@@ -1,4 +1,3 @@
-# mypy: ignore-errors
 SPECIFICATION_SECTIONS = [
     "Statut",
     "Demande originale",

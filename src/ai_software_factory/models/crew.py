@@ -1,4 +1,4 @@
-# mypy: ignore-errors
+from enum import StrEnum
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -50,10 +50,16 @@ class HumanValidationResponse(BaseModel):
     answers: dict[str, str] = Field(default_factory=dict)
 
 
+class CrewExecutionStatus(StrEnum):
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    BLOCKED = "BLOCKED"
+
+
 class CrewExecutionResult(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     crew_id: str
-    status: str
+    status: CrewExecutionStatus
     artifacts: list[ArtifactReference] = Field(default_factory=list)
     pending_questions: list[str] = Field(default_factory=list)
     human_validation: HumanValidationRequest | None = None

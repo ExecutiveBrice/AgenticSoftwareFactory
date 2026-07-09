@@ -63,11 +63,3 @@ disallow_untyped_decorators = false
 "src/pydantic.py" = ["ANN", "B007"]
 "src/typer/**" = ["ANN"]
 "src/git.py" = ["ANN"]
-
-[[tool.mypy.overrides]]
-module = ["*"]
-disallow_untyped_calls = false
-disallow_untyped_defs = false
-warn_return_any = false
-
-disable_error_code = ["no-untyped-def", "no-untyped-call", "type-arg", "var-annotated", "no-any-return"]

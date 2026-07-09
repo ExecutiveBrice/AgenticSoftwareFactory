@@ -1,4 +1,3 @@
-# mypy: ignore-errors
 import sys
 from pathlib import Path
 

@@ -1,57 +1,78 @@
-# mypy: ignore-errors
 import json
+from collections.abc import Callable, Mapping
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Protocol, Self, overload, runtime_checkable
+
+# Lightweight local fallback for environments without pydantic installed.
+# Its API boundary intentionally uses Any where it mirrors pydantic's dynamic model data.
 
 
-class ConfigDict(dict):
+@runtime_checkable
+class HasValue(Protocol):
+    value: object
+
+
+class ConfigDict(dict[str, object]):
     pass
 
 
 class FieldInfo:
-    def __init__(self, default=None, default_factory=None):
+    def __init__(
+        self, default: object = None, default_factory: Callable[[], object] | None = None
+    ) -> None:
         self.default = default
         self.default_factory = default_factory
 
 
-def Field(default=None, *, default_factory=None):
+@overload
+def Field[T](default: T, *, default_factory: None = None) -> T: ...
+
+
+@overload
+def Field[T](default: None = None, *, default_factory: Callable[[], T]) -> T: ...
+
+
+def Field(default: object = None, *, default_factory: Callable[[], object] | None = None) -> Any:
     return FieldInfo(default, default_factory)
 
 
 class BaseModel:
-    def __init__(self, **data):
-        anns = {}
+    def __init__(self, **data: object) -> None:
+        anns: dict[str, object] = {}
         for cls in reversed(type(self).mro()):
-            anns.update(getattr(cls, "__annotations__", {}))
-        for k, v in anns.items():
-            if k == "model_config":
+            cls_annotations = getattr(cls, "__annotations__", {})
+            if isinstance(cls_annotations, Mapping):
+                anns.update(cls_annotations)
+        for key in anns:
+            if key == "model_config":
                 continue
-            if k in data:
-                val = data.pop(k)
+            if key in data:
+                val = data.pop(key)
             else:
-                default = getattr(type(self), k, None)
+                default = getattr(type(self), key, None)
                 if isinstance(default, FieldInfo):
                     val = default.default_factory() if default.default_factory else default.default
                 else:
                     val = default
-            setattr(self, k, val)
+            setattr(self, key, val)
         if data:
             raise TypeError(f"Extra fields {list(data)}")
 
     @classmethod
-    def model_validate(cls, data):
+    def model_validate(cls: type[Self], data: Mapping[str, object]) -> Self:
         return cls(**data)
 
-    def model_dump(self):
+    def model_dump(self) -> dict[str, object]:
         return dict(self.__dict__)
 
-    def model_dump_json(self, indent=None):
-        def default(o):
+    def model_dump_json(self, indent: int | None = None) -> str:
+        def default(o: object) -> object:
             if isinstance(o, Path):
                 return str(o)
             if isinstance(o, datetime):
                 return o.isoformat()
-            if hasattr(o, "value"):
+            if isinstance(o, HasValue):
                 return o.value
             raise TypeError(type(o).__name__)
 

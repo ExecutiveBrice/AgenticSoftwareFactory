@@ -1,0 +1,60 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-software-factory"
+version = "0.1.0"
+description = "Technical foundation for the AI Software Factory framework."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "AI Software Factory contributors" }]
+dependencies = [
+    "gitpython>=3.1.43",
+    "pydantic>=2.8.0",
+    "pyyaml>=6.0.2",
+    "typer>=0.12.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.10.0",
+    "pytest>=8.2.0",
+    "ruff>=0.5.0",
+]
+crewai = [
+    "crewai>=0.70.0",
+]
+
+[project.scripts]
+factory = "ai_software_factory.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ai_software_factory"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ANN"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+packages = ["ai_software_factory"]
+
+[[tool.mypy.overrides]]
+module = ["git", "git.*", "typer", "typer.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "ai_software_factory.cli.app"
+disallow_untyped_decorators = false

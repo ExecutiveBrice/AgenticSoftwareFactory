@@ -1,0 +1,31 @@
+tasks:
+  create_feature_delivery_plan:
+    description: Execute create_feature_delivery_plan for the planning stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: delivery_planner
+    context: []
+  create_epic:
+    description: Execute create_epic for the planning stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: technical_task_writer
+    context: []
+  create_implementation_tasks:
+    description: Execute create_implementation_tasks for the planning stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: test_planner
+    context: []
+  create_test_plan:
+    description: Execute create_test_plan for the planning stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: dependency_reviewer
+    context: []
+  validate_task_graph:
+    description: Execute validate_task_graph for the planning stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: dependency_reviewer
+    context: []
+  prepare_backlog_validation:
+    description: Execute prepare_backlog_validation for the planning stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: dependency_reviewer
+    context: []

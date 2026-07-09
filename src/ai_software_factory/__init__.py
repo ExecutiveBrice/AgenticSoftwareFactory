@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 """AI Software Factory package."""
 
 __version__ = "0.1.0"

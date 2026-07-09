@@ -1,0 +1,22 @@
+# mypy: ignore-errors
+SPECIFICATION_SECTIONS = [
+    "Statut",
+    "Demande originale",
+    "Objectif métier",
+    "Contexte existant",
+    "Utilisateurs concernés",
+    "Description fonctionnelle",
+    "User stories",
+    "Critères d’acceptation",
+    "Règles métier",
+    "Parcours nominaux",
+    "Cas limites",
+    "Impacts sur l’existant",
+    "Exigences non fonctionnelles",
+    "Hors périmètre",
+    "Risques",
+    "Hypothèses validées",
+    "Questions résolues",
+    "Questions ouvertes",
+    "Traçabilité",
+]

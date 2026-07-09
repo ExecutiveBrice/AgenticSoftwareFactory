@@ -1,0 +1,41 @@
+tasks:
+  analyse_design_context:
+    description: Execute analyse_design_context for the design stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: solution_architect
+    context: []
+  design_domain_changes:
+    description: Execute design_domain_changes for the design stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: domain_designer
+    context: []
+  design_user_experience:
+    description: Execute design_user_experience for the design stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: ux_designer
+    context: []
+  design_technical_solution:
+    description: Execute design_technical_solution for the design stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: security_architect
+    context: []
+  assess_security_and_privacy:
+    description: Execute assess_security_and_privacy for the design stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: design_reviewer
+    context: []
+  propose_architecture_decisions:
+    description: Execute propose_architecture_decisions for the design stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: design_reviewer
+    context: []
+  review_design:
+    description: Execute review_design for the design stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: design_reviewer
+    context: []
+  prepare_design_validation:
+    description: Execute prepare_design_validation for the design stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: design_reviewer
+    context: []

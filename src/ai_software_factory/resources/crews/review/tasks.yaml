@@ -1,0 +1,31 @@
+tasks:
+  review_code_quality:
+    description: Execute review_code_quality for the review stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: code_reviewer
+    context: []
+  review_architecture_compliance:
+    description: Execute review_architecture_compliance for the review stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: architecture_reviewer
+    context: []
+  review_security:
+    description: Execute review_security for the review stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: security_reviewer
+    context: []
+  review_delivery_readiness:
+    description: Execute review_delivery_readiness for the review stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: release_reviewer
+    context: []
+  consolidate_review_findings:
+    description: Execute consolidate_review_findings for the review stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: review_lead
+    context: []
+  issue_final_review:
+    description: Execute issue_final_review for the review stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: review_lead
+    context: []

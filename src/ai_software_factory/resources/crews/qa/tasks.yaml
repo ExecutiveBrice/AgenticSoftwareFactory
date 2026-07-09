@@ -1,0 +1,36 @@
+tasks:
+  review_acceptance_criteria:
+    description: Execute review_acceptance_criteria for the qa stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: qa_analyst
+    context: []
+  build_acceptance_matrix:
+    description: Execute build_acceptance_matrix for the qa stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: test_executor
+    context: []
+  execute_targeted_tests:
+    description: Execute execute_targeted_tests for the qa stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: regression_analyst
+    context: []
+  execute_regression_tests:
+    description: Execute execute_regression_tests for the qa stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: qa_reporter
+    context: []
+  verify_non_functional_requirements:
+    description: Execute verify_non_functional_requirements for the qa stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: qa_reporter
+    context: []
+  analyse_test_results:
+    description: Execute analyse_test_results for the qa stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: qa_reporter
+    context: []
+  write_qa_report:
+    description: Execute write_qa_report for the qa stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: qa_reporter
+    context: []

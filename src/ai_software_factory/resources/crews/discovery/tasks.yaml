@@ -1,0 +1,31 @@
+tasks:
+  inspect_project:
+    description: Execute inspect_project for the discovery stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: repository_analyst
+    context: []
+  analyse_request:
+    description: Execute analyse_request for the discovery stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: business_analyst
+    context: []
+  identify_open_questions:
+    description: Execute identify_open_questions for the discovery stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: requirements_reviewer
+    context: []
+  prepare_human_clarification:
+    description: Execute prepare_human_clarification for the discovery stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: discovery_writer
+    context: []
+  write_feature_specification:
+    description: Execute write_feature_specification for the discovery stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: discovery_writer
+    context: []
+  prepare_product_owner_validation:
+    description: Execute prepare_product_owner_validation for the discovery stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: discovery_writer
+    context: []

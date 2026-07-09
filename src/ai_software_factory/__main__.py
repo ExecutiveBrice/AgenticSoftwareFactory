@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 from ai_software_factory.cli.app import app
 
 

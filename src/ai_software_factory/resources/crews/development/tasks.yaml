@@ -1,0 +1,41 @@
+tasks:
+  inspect_task_context:
+    description: Execute inspect_task_context for the development stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: codebase_analyst
+    context: []
+  prepare_implementation_plan:
+    description: Execute prepare_implementation_plan for the development stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: software_developer
+    context: []
+  implement_task:
+    description: Execute implement_task for the development stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: test_developer
+    context: []
+  implement_tests:
+    description: Execute implement_tests for the development stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: documentation_developer
+    context: []
+  update_local_documentation:
+    description: Execute update_local_documentation for the development stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: implementation_reviewer
+    context: []
+  run_development_checks:
+    description: Execute run_development_checks for the development stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: implementation_reviewer
+    context: []
+  self_review_implementation:
+    description: Execute self_review_implementation for the development stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: implementation_reviewer
+    context: []
+  prepare_implementation_manifest:
+    description: Execute prepare_implementation_manifest for the development stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: implementation_reviewer
+    context: []

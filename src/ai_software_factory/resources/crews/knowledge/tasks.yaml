@@ -1,0 +1,36 @@
+tasks:
+  collect_project_changes:
+    description: Execute collect_project_changes for the knowledge stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: project_librarian
+    context: []
+  update_project_context:
+    description: Execute update_project_context for the knowledge stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: documentation_auditor
+    context: []
+  update_glossary:
+    description: Execute update_glossary for the knowledge stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: documentation_auditor
+    context: []
+  update_roadmap:
+    description: Execute update_roadmap for the knowledge stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: documentation_auditor
+    context: []
+  record_decisions:
+    description: Execute record_decisions for the knowledge stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: documentation_auditor
+    context: []
+  update_changelog:
+    description: Execute update_changelog for the knowledge stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: documentation_auditor
+    context: []
+  audit_project_knowledge:
+    description: Execute audit_project_knowledge for the knowledge stage.
+    expected_output: Validated markdown or YAML artifact.
+    agent: documentation_auditor
+    context: []

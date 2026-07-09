@@ -1,0 +1,10 @@
+description: knowledge crew
+agents:
+  project_librarian:
+    role: Project Librarian
+    goal: Generic, project-agnostic project_librarian responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  documentation_auditor:
+    role: Documentation Auditor
+    goal: Generic, project-agnostic documentation_auditor responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.

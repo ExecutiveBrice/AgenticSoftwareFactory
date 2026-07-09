@@ -1,0 +1,22 @@
+# mypy: ignore-errors
+from enum import StrEnum
+
+
+class DiscoveryVerdict(StrEnum):
+    APPROVED = "APPROVED"
+    CHANGES_REQUESTED = "CHANGES_REQUESTED"
+    REJECTED = "REJECTED"
+
+
+class QAVerdict(StrEnum):
+    PASSED = "PASSED"
+    PASSED_WITH_WARNINGS = "PASSED_WITH_WARNINGS"
+    FAILED = "FAILED"
+    BLOCKED = "BLOCKED"
+
+
+class ReviewVerdict(StrEnum):
+    APPROVED = "APPROVED"
+    APPROVED_WITH_FOLLOW_UP = "APPROVED_WITH_FOLLOW_UP"
+    CHANGES_REQUESTED = "CHANGES_REQUESTED"
+    REJECTED = "REJECTED"

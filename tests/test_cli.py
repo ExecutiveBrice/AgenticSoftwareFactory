@@ -3,10 +3,10 @@ import sys
 from pathlib import Path
 
 import pytest
-from typer.testing import CliRunner
 
 from ai_software_factory import __version__
 from ai_software_factory.cli.app import app
+from typer.testing import CliRunner
 
 runner = CliRunner()
 

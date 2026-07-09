@@ -1,0 +1,18 @@
+description: discovery crew
+agents:
+  repository_analyst:
+    role: Repository Analyst
+    goal: Generic, project-agnostic repository_analyst responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  business_analyst:
+    role: Business Analyst
+    goal: Generic, project-agnostic business_analyst responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  requirements_reviewer:
+    role: Requirements Reviewer
+    goal: Generic, project-agnostic requirements_reviewer responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  discovery_writer:
+    role: Discovery Writer
+    goal: Generic, project-agnostic discovery_writer responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.

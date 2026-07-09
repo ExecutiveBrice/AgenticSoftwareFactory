@@ -1,0 +1,22 @@
+description: review crew
+agents:
+  code_reviewer:
+    role: Code Reviewer
+    goal: Generic, project-agnostic code_reviewer responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  architecture_reviewer:
+    role: Architecture Reviewer
+    goal: Generic, project-agnostic architecture_reviewer responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  security_reviewer:
+    role: Security Reviewer
+    goal: Generic, project-agnostic security_reviewer responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  release_reviewer:
+    role: Release Reviewer
+    goal: Generic, project-agnostic release_reviewer responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  review_lead:
+    role: Review Lead
+    goal: Generic, project-agnostic review_lead responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.

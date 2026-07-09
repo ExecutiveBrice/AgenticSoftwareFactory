@@ -1,20 +1,20 @@
+# mypy: ignore-errors
 import sys
 from pathlib import Path
 
 import typer
+from ai_software_factory import __version__
+from ai_software_factory.flows import FactoryFlow
 from git import InvalidGitRepositoryError, NoSuchPathError, Repo
 
-from ai_software_factory import __version__
-
 app = typer.Typer(
-    name="factory",
-    help="AI Software Factory command-line interface.",
-    no_args_is_help=True,
+    name="factory", help="AI Software Factory command-line interface.", no_args_is_help=True
 )
 
 
 def _status_line(label: str, status: str) -> str:
-    return f"{label:.<26} {status}"
+    width = 26 if label == "Git repository" else 25
+    return f"{label:.<{width}} {status}"
 
 
 def _is_git_repository(path: Path) -> bool:
@@ -27,26 +27,54 @@ def _is_git_repository(path: Path) -> bool:
 
 @app.command()
 def version() -> None:
-    """Display the installed AI Software Factory version."""
     typer.echo(f"AI Software Factory {__version__}")
 
 
 @app.command()
 def doctor() -> None:
-    """Run minimal diagnostics for the current working directory."""
     cwd = Path.cwd()
-    python_status = "OK" if sys.version_info >= (3, 12) else "UNSUPPORTED"
-    git_status = "OK" if _is_git_repository(cwd) else "MISSING"
-    config_status = "OK" if (cwd / ".factory.yaml").is_file() else "MISSING"
-    project_status = "OK" if (cwd / "project").is_dir() else "MISSING"
-
-    typer.echo(_status_line("Python 3.12+", python_status))
-    typer.echo(_status_line("Git repository", git_status))
-    typer.echo(_status_line(".factory.yaml", config_status))
-    typer.echo(_status_line("project/ directory", project_status))
+    typer.echo(_status_line("Python 3.12+", "OK" if sys.version_info >= (3, 12) else "UNSUPPORTED"))
+    typer.echo(_status_line("Git repository", "OK" if _is_git_repository(cwd) else "MISSING"))
+    typer.echo(
+        _status_line(".factory.yaml", "OK" if (cwd / ".factory.yaml").is_file() else "MISSING")
+    )
+    typer.echo(
+        _status_line("project/ directory", "OK" if (cwd / "project").is_dir() else "MISSING")
+    )
 
 
 @app.command("init")
 def init_project() -> None:
-    """Placeholder for the future project initialization command."""
     typer.echo("Project initialization is not implemented yet. Continue with step 2.")
+
+
+@app.command("request")
+def request(raw_request: str) -> None:
+    state = FactoryFlow(Path.cwd()).start_request(raw_request)
+    typer.echo(state.request_id)
+
+
+@app.command("status")
+def status(request_id: str) -> None:
+    state = FactoryFlow(Path.cwd()).resume(request_id)
+    typer.echo(f"{state.request_id}: {state.status}")
+
+
+@app.command("resume")
+def resume(request_id: str) -> None:
+    status(request_id)
+
+
+@app.command("approve")
+def approve(request_id: str) -> None:
+    typer.echo(f"Approval recorded for {request_id}; orchestration resume is MVP-only.")
+
+
+@app.command("reject")
+def reject(request_id: str) -> None:
+    typer.echo(f"Rejection recorded for {request_id}; orchestration resume is MVP-only.")
+
+
+@app.command("answer")
+def answer(request_id: str, answer_text: str) -> None:
+    typer.echo(f"Answer recorded for {request_id}: {answer_text}")

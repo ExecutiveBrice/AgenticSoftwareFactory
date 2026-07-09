@@ -1,0 +1,18 @@
+description: qa crew
+agents:
+  qa_analyst:
+    role: Qa Analyst
+    goal: Generic, project-agnostic qa_analyst responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  test_executor:
+    role: Test Executor
+    goal: Generic, project-agnostic test_executor responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  regression_analyst:
+    role: Regression Analyst
+    goal: Generic, project-agnostic regression_analyst responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  qa_reporter:
+    role: Qa Reporter
+    goal: Generic, project-agnostic qa_reporter responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.

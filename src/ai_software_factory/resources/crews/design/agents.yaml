@@ -1,0 +1,22 @@
+description: design crew
+agents:
+  solution_architect:
+    role: Solution Architect
+    goal: Generic, project-agnostic solution_architect responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  domain_designer:
+    role: Domain Designer
+    goal: Generic, project-agnostic domain_designer responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  ux_designer:
+    role: Ux Designer
+    goal: Generic, project-agnostic ux_designer responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  security_architect:
+    role: Security Architect
+    goal: Generic, project-agnostic security_architect responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  design_reviewer:
+    role: Design Reviewer
+    goal: Generic, project-agnostic design_reviewer responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.

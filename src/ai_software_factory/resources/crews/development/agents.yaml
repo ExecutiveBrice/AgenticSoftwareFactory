@@ -1,0 +1,22 @@
+description: development crew
+agents:
+  codebase_analyst:
+    role: Codebase Analyst
+    goal: Generic, project-agnostic codebase_analyst responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  software_developer:
+    role: Software Developer
+    goal: Generic, project-agnostic software_developer responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  test_developer:
+    role: Test Developer
+    goal: Generic, project-agnostic test_developer responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  documentation_developer:
+    role: Documentation Developer
+    goal: Generic, project-agnostic documentation_developer responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  implementation_reviewer:
+    role: Implementation Reviewer
+    goal: Generic, project-agnostic implementation_reviewer responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.

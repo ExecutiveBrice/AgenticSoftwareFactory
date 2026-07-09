@@ -1,0 +1,18 @@
+description: planning crew
+agents:
+  delivery_planner:
+    role: Delivery Planner
+    goal: Generic, project-agnostic delivery_planner responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  technical_task_writer:
+    role: Technical Task Writer
+    goal: Generic, project-agnostic technical_task_writer responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  test_planner:
+    role: Test Planner
+    goal: Generic, project-agnostic test_planner responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.
+  dependency_reviewer:
+    role: Dependency Reviewer
+    goal: Generic, project-agnostic dependency_reviewer responsibility.
+    backstory: Operates without hard-coded project or framework assumptions.

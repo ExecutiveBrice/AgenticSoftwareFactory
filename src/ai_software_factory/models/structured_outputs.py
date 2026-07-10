@@ -27,11 +27,19 @@ class ProductOwnerDecision(BaseModel):
     risks: list[str] = Field(default_factory=list)
 
 
+class AcceptanceMatrixRow(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    criterion: str
+    test: str
+    evidence: str
+
+
 class QAReport(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     verdict: QAVerdict
     tested_scope: list[str]
     evidence: list[str]
+    acceptance_matrix: list[AcceptanceMatrixRow] = Field(default_factory=list)
     failures: list[str] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
     follow_up: list[str] = Field(default_factory=list)
@@ -53,3 +61,16 @@ class DevelopmentManifest(BaseModel):
     tests_added_or_updated: list[str] = Field(default_factory=list)
     commands_run: list[str] = Field(default_factory=list)
     residual_risks: list[str] = Field(default_factory=list)
+
+
+class PlanningTask(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    id: str
+    title: str
+    verification: str
+    depends_on: list[str] = Field(default_factory=list)
+
+
+class PlanningGraph(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    tasks: list[PlanningTask]

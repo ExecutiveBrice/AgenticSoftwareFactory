@@ -2,7 +2,7 @@ from pathlib import Path
 
 from ai_software_factory.crews.base import BaseCrew
 from ai_software_factory.crews.runtime import CrewRunResult, CrewRuntime, CrewRuntimeFactory
-from ai_software_factory.models import CrewExecutionStatus, PlanningGraph
+from ai_software_factory.models import CrewExecutionStatus, PlanningGraph, PlanningTask
 
 
 class PlanningCrew(BaseCrew):
@@ -46,7 +46,11 @@ class PlanningCrew(BaseCrew):
         if graph_payload is None:
             return None
         graph = PlanningGraph.model_validate(graph_payload)
-        task_ids = {task.id for task in graph.tasks}
+        tasks = [
+            item if isinstance(item, PlanningTask) else PlanningTask.model_validate(item)
+            for item in graph.tasks
+        ]
+        task_ids = {task.id for task in tasks}
         visiting: set[str] = set()
         visited: set[str] = set()
 
@@ -56,7 +60,7 @@ class PlanningCrew(BaseCrew):
             if task_id in visited:
                 return True
             visiting.add(task_id)
-            task = next(item for item in graph.tasks if item.id == task_id)
+            task = next(item for item in tasks if item.id == task_id)
             for dependency in task.depends_on:
                 if dependency not in task_ids or not visit(dependency):
                     return False
@@ -64,7 +68,7 @@ class PlanningCrew(BaseCrew):
             visited.add(task_id)
             return True
 
-        if not all(visit(task.id) for task in graph.tasks):
+        if not all(visit(task.id) for task in tasks):
             return "Planning graph must be acyclic and reference existing tasks."
         return None
 

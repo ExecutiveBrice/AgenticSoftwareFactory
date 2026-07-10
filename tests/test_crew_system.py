@@ -4,6 +4,14 @@ from pathlib import Path
 
 import pytest
 
+from ai_software_factory.crews import (
+    CrewRunRequest,
+    CrewRunResult,
+    DisabledCrewRuntime,
+    FakeCrewRuntime,
+    FakeCrewRuntimeFactory,
+)
+from ai_software_factory.crews.discovery import DiscoveryCrew
 from ai_software_factory.crews.registry import CrewRegistry
 from ai_software_factory.crews.shared import validation as crew_validation
 from ai_software_factory.crews.shared.constants import CREW_IDS
@@ -16,6 +24,7 @@ from ai_software_factory.flows.routing import assert_transition, route_qa, route
 from ai_software_factory.models import (
     AgentDefinition,
     CrewDefinition,
+    CrewExecutionStatus,
     DiscoveryVerdict,
     QAVerdict,
     ReviewVerdict,
@@ -550,3 +559,98 @@ def test_human_documents_are_preserved_from_wrong_crews(tmp_path: Path) -> None:
         svc.write_text("project/context.md", "changed", overwrite=True)
 
     assert human_doc.read_text(encoding="utf-8") == "human content"
+
+
+class _InvalidRuntime:
+    def run(self, request: CrewRunRequest) -> object:
+        return {"crew_id": request.crew_id, "status": "UNKNOWN", "unexpected": True}
+
+
+def test_fake_runtime_is_deterministic_and_network_free(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    def fail_network(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("network access is forbidden in fake runtime tests")
+
+    monkeypatch.setattr("socket.create_connection", fail_network)
+    runtime = FakeCrewRuntime()
+    crew = DiscoveryCrew(tmp_path, runtime=runtime)
+
+    result = crew.kickoff(request="generic request")
+    second = crew.kickoff(request="generic request")
+
+    assert result.status == CrewExecutionStatus.COMPLETED
+    assert result.message == second.message
+    assert len(runtime.requests) == 2
+    assert runtime.requests[0].inputs == {"request": "generic request"}
+
+
+def test_disabled_runtime_returns_clear_error(tmp_path: Path) -> None:
+    result = DiscoveryCrew(tmp_path, runtime=DisabledCrewRuntime()).kickoff()
+
+    assert result.status == CrewExecutionStatus.FAILED
+    assert "CrewAI is not installed or configured" in result.message
+
+
+def test_runtime_error_result_is_propagated(tmp_path: Path) -> None:
+    runtime = FakeCrewRuntime(
+        result=CrewRunResult(
+            crew_id="discovery",
+            status=CrewExecutionStatus.FAILED,
+            message="runtime failed clearly",
+        )
+    )
+
+    result = DiscoveryCrew(tmp_path, runtime=runtime).kickoff()
+
+    assert result.status == CrewExecutionStatus.FAILED
+    assert result.message == "runtime failed clearly"
+
+
+def test_invalid_runtime_result_is_rejected(tmp_path: Path) -> None:
+    with pytest.raises((TypeError, ValueError)):
+        DiscoveryCrew(tmp_path, runtime=_InvalidRuntime()).kickoff()
+
+
+def test_valid_runtime_result_is_returned(tmp_path: Path) -> None:
+    runtime = FakeCrewRuntime(
+        result=CrewRunResult(
+            crew_id="discovery",
+            status=CrewExecutionStatus.COMPLETED,
+            message="valid result",
+        )
+    )
+
+    result = DiscoveryCrew(tmp_path, runtime=runtime).kickoff(topic="generic")
+
+    assert result.crew_id == "discovery"
+    assert result.status == CrewExecutionStatus.COMPLETED
+    assert result.message == "valid result"
+
+
+def test_runtime_factory_injection(tmp_path: Path) -> None:
+    runtime = FakeCrewRuntime()
+    factory = FakeCrewRuntimeFactory({"discovery": runtime})
+
+    result = DiscoveryCrew(tmp_path, runtime_factory=factory).kickoff()
+
+    assert result.status == CrewExecutionStatus.COMPLETED
+    assert factory.created_for == ["discovery"]
+    assert runtime.requests[0].crew_id == "discovery"
+
+
+def test_default_kickoff_no_longer_returns_immediate_completed(tmp_path: Path) -> None:
+    result = DiscoveryCrew(tmp_path).kickoff()
+
+    assert result.status == CrewExecutionStatus.FAILED
+    assert "CrewAI is not installed or configured" in result.message
+
+
+def test_normal_package_import_does_not_import_crewai() -> None:
+    import sys
+
+    sys.modules.pop("crewai", None)
+    __import__("ai_software_factory")
+    __import__("ai_software_factory.crews")
+
+    assert "crewai" not in sys.modules

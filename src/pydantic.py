@@ -2,7 +2,7 @@ import json
 from collections.abc import Callable, Mapping
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Protocol, Self, overload, runtime_checkable
+from typing import Any, Protocol, Self, cast, overload, runtime_checkable
 
 # Lightweight local fallback for environments without pydantic installed.
 # Its API boundary intentionally uses Any where it mirrors pydantic's dynamic model data.
@@ -11,6 +11,15 @@ from typing import Any, Protocol, Self, overload, runtime_checkable
 @runtime_checkable
 class HasValue(Protocol):
     value: object
+
+
+class ValidationError(ValueError):
+    def __init__(self, field: str, message: str) -> None:
+        self._errors = [{"loc": (field,), "msg": message}]
+        super().__init__(message)
+
+    def errors(self) -> list[dict[str, object]]:
+        return cast(list[dict[str, object]], self._errors)
 
 
 class ConfigDict(dict[str, object]):

@@ -11,7 +11,7 @@ class AgentDefinition(BaseModel):
     id: str
     role: str
     goal: str
-    backstory: str = ""
+    backstory: str
 
 
 class TaskDefinition(BaseModel):

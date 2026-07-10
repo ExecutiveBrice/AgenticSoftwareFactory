@@ -436,3 +436,117 @@ def test_human_and_structured_tasks_are_explicit() -> None:
         "qa.write_qa_report": "QAReport",
         "review.issue_final_review": "ReviewReport",
     }
+
+
+@pytest.mark.parametrize(
+    ("crew_id", "allowed_path"),
+    [
+        ("discovery", "project/discovery/report.md"),
+        ("discovery", "project/specifications/spec.md"),
+        ("knowledge", "project/context.md"),
+        ("knowledge", "project/decisions/ADR-0001.md"),
+        ("design", "project/architecture/FEAT-0001/design.md"),
+        ("planning", "project/backlog/FEAT-0001/task.md"),
+        ("qa", "project/reviews/QA/report.md"),
+        ("review", "project/reviews/TECH/report.md"),
+    ],
+)
+def test_each_crew_writes_inside_its_zone(tmp_path: Path, crew_id: str, allowed_path: str) -> None:
+    from ai_software_factory.services import policy_for_crew
+
+    svc = ArtifactService(tmp_path, policy=policy_for_crew(crew_id))
+
+    ref = svc.write_text(allowed_path, "content")
+
+    assert ref.exists
+
+
+@pytest.mark.parametrize(
+    ("crew_id", "forbidden_path"),
+    [
+        ("discovery", "src/package/code.py"),
+        ("knowledge", "project/specifications/spec.md"),
+        ("design", "project/architecture-not-really/design.md"),
+        ("planning", "project/backlog-old/task.md"),
+        ("qa", "project/reviews/TECH/report.md"),
+        ("review", "project/reviews/QA/report.md"),
+    ],
+)
+def test_each_crew_is_denied_outside_its_zone(
+    tmp_path: Path, crew_id: str, forbidden_path: str
+) -> None:
+    from ai_software_factory.services import policy_for_crew
+
+    svc = ArtifactService(tmp_path, policy=policy_for_crew(crew_id))
+
+    with pytest.raises(PermissionError):
+        svc.write_text(forbidden_path, "content")
+
+
+def test_permission_policy_blocks_path_traversal_and_absolute_paths(tmp_path: Path) -> None:
+    from ai_software_factory.services import policy_for_crew
+
+    svc = ArtifactService(tmp_path, policy=policy_for_crew("discovery"))
+
+    with pytest.raises(ValueError):
+        svc.write_text("project/discovery/../../src/code.py", "content")
+    with pytest.raises(ValueError):
+        svc.write_text(tmp_path / "project" / "discovery" / "absolute.md", "content")
+
+
+def test_permission_policy_blocks_external_symlink(tmp_path: Path) -> None:
+    from ai_software_factory.services import policy_for_crew
+
+    outside = tmp_path.parent / f"{tmp_path.name}-outside"
+    outside.mkdir()
+    link = tmp_path / "project" / "discovery" / "external"
+    link.parent.mkdir(parents=True)
+    link.symlink_to(outside, target_is_directory=True)
+    svc = ArtifactService(tmp_path, policy=policy_for_crew("discovery"))
+
+    with pytest.raises(ValueError):
+        svc.write_text("project/discovery/external/report.md", "content")
+
+
+def test_permission_policy_blocks_unauthorized_delete(tmp_path: Path) -> None:
+    from ai_software_factory.services import policy_for_crew
+
+    target = tmp_path / "project" / "reviews" / "QA" / "report.md"
+    target.parent.mkdir(parents=True)
+    target.write_text("content", encoding="utf-8")
+    svc = ArtifactService(tmp_path, policy=policy_for_crew("qa"))
+
+    with pytest.raises(PermissionError):
+        svc.delete("project/reviews/QA/report.md")
+
+    assert target.exists()
+
+
+def test_development_is_limited_to_task_declared_files(tmp_path: Path) -> None:
+    from ai_software_factory.services import policy_for_crew
+
+    svc = ArtifactService(
+        tmp_path,
+        policy=policy_for_crew(
+            "development", task_paths=("src/allowed.py", "tests/test_allowed.py")
+        ),
+    )
+
+    svc.write_text("src/allowed.py", "content")
+    svc.write_text("tests/test_allowed.py", "content")
+    with pytest.raises(PermissionError):
+        svc.write_text("src/not_allowed.py", "content")
+
+
+def test_human_documents_are_preserved_from_wrong_crews(tmp_path: Path) -> None:
+    from ai_software_factory.services import policy_for_crew
+
+    human_doc = tmp_path / "project" / "context.md"
+    human_doc.parent.mkdir(parents=True)
+    human_doc.write_text("human content", encoding="utf-8")
+    svc = ArtifactService(tmp_path, policy=policy_for_crew("design"))
+
+    with pytest.raises(PermissionError):
+        svc.write_text("project/context.md", "changed", overwrite=True)
+
+    assert human_doc.read_text(encoding="utf-8") == "human content"

@@ -46,7 +46,10 @@ def doctor() -> None:
 
 @app.command("init")
 def init_project() -> None:
-    typer.echo("Project initialization is not implemented yet. Continue with step 2.")
+    typer.echo(
+        "Project initialization is not automated yet; "
+        "create .factory.yaml and project/ manually when needed."
+    )
 
 
 @app.command("request")

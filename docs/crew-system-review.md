@@ -1,58 +1,50 @@
 # Crew System Review
 
-CREW SYSTEM VALIDATED
+## Factual status
 
-## Architecture finale
+The crew system is implemented as a validated MVP. The repository contains strict Pydantic models, repository-bounded artifact services, local identifier generation, a crew registry, YAML crew resources, deterministic fake runtimes for tests, an optional CrewAI adapter, and a persistent `FactoryFlow` stored under `.factory/state/`.
 
-Le framework fournit un socle Pydantic strict, un service d'artefacts borné au repository, un générateur d'identifiants local, un registre de crews, des ressources YAML validées, et un Flow MVP persistant dans `.factory/state/`.
+The system is not a full autonomous delivery engine. Base installation does not call LLMs, `factory init` does not generate files, and CrewAI execution requires optional dependencies plus external LLM configuration.
 
-## Crews et agents
+## Seven crews
 
-- discovery: repository_analyst, business_analyst, requirements_reviewer, discovery_writer.
-- knowledge: project_librarian, documentation_auditor.
-- design: solution_architect, domain_designer, ux_designer, security_architect, design_reviewer.
-- planning: delivery_planner, technical_task_writer, test_planner, dependency_reviewer.
-- development: codebase_analyst, software_developer, test_developer, documentation_developer, implementation_reviewer.
-- qa: qa_analyst, test_executor, regression_analyst, qa_reporter.
-- review: code_reviewer, architecture_reviewer, security_reviewer, release_reviewer, review_lead.
+Each crew has `agents.yaml` and `tasks.yaml` files under `src/ai_software_factory/resources/crews/<crew>/`. The definitions are generic and are validated by tests.
 
-## Tasks par crew
+| Crew | Agents | Write area | Verdicts or decisions |
+| --- | --- | --- | --- |
+| discovery | repository_analyst, business_analyst, requirements_reviewer, discovery_writer | `project/discovery/`, `project/specifications/` | Product Owner approval, rejection, or change request |
+| knowledge | project_librarian, documentation_auditor | `project/context.md`, `project/glossary.md`, `project/roadmap.md`, `project/changelog.md`, `project/decisions/`, `project/reviews/KNOWLEDGE/`, `project/reports/knowledge/` | knowledge completion or failure |
+| design | solution_architect, domain_designer, ux_designer, security_architect, design_reviewer | `project/architecture/`, `project/design/` | approved, rejected, or changes requested |
+| planning | delivery_planner, technical_task_writer, test_planner, dependency_reviewer | `project/backlog/`, `project/planning/` | approved, rejected, or changes requested |
+| development | codebase_analyst, software_developer, test_developer, documentation_developer, implementation_reviewer | explicit task paths plus `project/development/` and `project/reviews/DEV/` | development completed or failed |
+| qa | qa_analyst, test_executor, regression_analyst, qa_reporter | `project/reviews/QA/`, `project/reports/qa/` | pass, pass with warnings, fail, or blocked |
+| review | code_reviewer, architecture_reviewer, security_reviewer, release_reviewer, review_lead | `project/reviews/TECH/`, `project/reports/tech/` | approved, changes requested, rejected, or blocked |
 
-Chaque crew possède un `agents.yaml` et un `tasks.yaml` sous `src/ai_software_factory/resources/crews/<crew>/`. Les tâches référencent des agents existants et restent génériques, sans métier, langage ou framework cible codé en dur.
+## Routing graph
 
-## Matrice des permissions
+Discovery starts a request, may suspend for clarification, then waits for Product Owner specification approval. Approval routes to knowledge, design, planning, development, QA, review, knowledge refresh, and final acceptance states as implemented by `FactoryFlow`. QA and review verdicts are routed explicitly by `flows.routing`.
 
-| Crew | Lecture | Création | Modification | Jamais toucher |
-| --- | --- | --- | --- | --- |
-| Discovery | repository, docs, project | `project/discovery/`, `project/specifications/` | artefacts discovery/spec seulement | code source cible |
-| Knowledge | artefacts validés | `project/decisions/`, `project/reviews/` | `project/context.md`, `project/glossary.md`, `project/roadmap.md`, `project/changelog.md` | code source cible |
-| Design | specs, architecture, décisions, code concerné | `project/architecture/FEAT-*` | design drafts | code source cible |
-| Planning | specs/design approuvés, backlog | `project/backlog/FEAT-*` | backlog de la feature | code source cible |
-| Development | task approuvée, code concerné | code/tests/docs nécessaires, manifestes | périmètre de task uniquement | hors repository, hors périmètre |
-| QA | task, diff, tests, manifestes | `project/reviews/QA-*` | rapports QA | code source cible |
-| Review | QA passed, diff, design | `project/reviews/TECH-*` | rapports review | code source cible |
+## FakeRuntime for tests
 
-## Graphe de routage
+`FakeCrewRuntime` returns deterministic completed task results and records all `CrewRunRequest` values it receives. `FakeCrewRuntimeFactory` creates or reuses fake runtimes per crew. This keeps tests deterministic and avoids CrewAI, network access, or LLM credentials.
 
-Discovery démarre une demande, peut suspendre pour clarification, puis attend l'approbation de spécification. Les approbations mènent à Knowledge, Design, Planning, Development, QA, Review, Knowledge et acceptation finale. Les verdicts QA et Review sont routés explicitement par `flows.routing`.
+## Security
 
-## Couverture de tests
+- Artifact writes are bounded to the repository root and path traversal is rejected.
+- Each crew has an explicit repository permission policy for create, modify, and delete actions.
+- Documentation-oriented crews cannot modify arbitrary target source code.
+- Development may write only explicit task paths and development review artifacts.
+- Human validation records preserve Product Owner decisions before sensitive transitions.
 
-Les tests couvrent les modèles, verdicts, identifiants, protection path traversal, absence d'écrasement, registre, ressources YAML, persistance atomique et routage principal.
+## Test coverage
 
-## Limites connues
+The test suite covers Pydantic models, verdict routing, identifier generation, path traversal protection, no-overwrite behavior, crew registry behavior, YAML resource validation, atomic persistence, CLI commands, fake runtimes, and main flow routing.
 
-- Les crews sont testables et configurées mais n'exécutent pas CrewAI.
-- Les productions documentaires sont des abstractions MVP.
-- Les commandes CLI de validation enregistrent une intention MVP et ne déclenchent pas encore toute l'orchestration.
+## Known limits
 
-## Fonctionnalités non implémentées
-
-- Appels LLM réels.
-- Adaptateurs CrewAI complets.
-- Analyse exhaustive de repositories cible.
-- Édition autonome de code par Development Crew.
-
-## Recommandation pour l'intégration des premiers LLM
-
-Ajouter un port d'adaptateur LLM injecté dans `BaseCrew`, conserver les tests avec fake adapter, limiter les sorties à des modèles Pydantic validés, et activer d'abord Discovery puis QA en lecture seule.
+- `factory init` is present but does not generate initial project files.
+- Real LLM calls are not part of the base installation.
+- CrewAI execution is optional and depends on external credentials and provider configuration.
+- Repository analysis is bounded and read-only by default.
+- Development crew behavior is constrained by task paths and is not unrestricted autonomous code editing.
+- MVP artifacts should be reviewed by a human Product Owner.

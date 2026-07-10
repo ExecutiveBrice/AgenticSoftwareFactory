@@ -10,6 +10,7 @@ from ai_software_factory.crews import (
     DisabledCrewRuntime,
     FakeCrewRuntime,
     FakeCrewRuntimeFactory,
+    TaskRunResult,
 )
 from ai_software_factory.crews.discovery import DiscoveryCrew
 from ai_software_factory.crews.registry import CrewRegistry
@@ -25,14 +26,18 @@ from ai_software_factory.models import (
     AgentDefinition,
     CrewDefinition,
     CrewExecutionStatus,
+    DiscoveryQuestion,
     DiscoveryQuestions,
     DiscoveryVerdict,
     QAVerdict,
     ReviewVerdict,
     TaskDefinition,
     WorkflowState,
+    WorkflowStatus,
 )
 from ai_software_factory.services import ArtifactService, IdentifierService
+from ai_software_factory.tools import RepositoryReadOnlyTools
+from ai_software_factory.workflows import DiscoveryWorkflow
 
 
 def test_models_and_verdicts(tmp_path: Path) -> None:
@@ -844,3 +849,143 @@ def test_crewai_runtime_optional_integration_requires_external_key() -> None:
         "Optional smoke test placeholder; enable with a real configured LLM "
         "in a secure environment."
     )
+
+
+def _seed_discovery_repo(path: Path) -> None:
+    (path / ".factory.yaml").write_text("project: generic\n", encoding="utf-8")
+    (path / "project").mkdir()
+    (path / "project" / "context.md").write_text(
+        "# Context\nGeneric project context.\n", encoding="utf-8"
+    )
+    (path / "docs").mkdir()
+    (path / "docs" / "architecture.md").write_text(
+        "# Architecture\nGeneric architecture.\n", encoding="utf-8"
+    )
+    (path / "project" / "backlog.md").write_text("# Backlog\n", encoding="utf-8")
+    (path / "project" / "specifications").mkdir()
+    (path / "project" / "specifications" / "existing.md").write_text(
+        "# Existing spec\n", encoding="utf-8"
+    )
+    (path / "src").mkdir()
+    (path / "src" / "module.py").write_text("VALUE = 1\n", encoding="utf-8")
+    (path / "pyproject.toml").write_text("[project]\nname='generic'\n", encoding="utf-8")
+
+
+def _runtime_with_questions(blocking: bool) -> FakeCrewRuntime:
+    questions = DiscoveryQuestions(
+        questions=[
+            DiscoveryQuestion(
+                id="Q1",
+                question="Which validated outcome should be specified?",
+                reason="The request lacks an outcome.",
+                impact="Specification would otherwise guess scope.",
+                options=["Option A", "Option B"],
+                blocking=blocking,
+            )
+        ],
+        can_continue_without_human=not blocking,
+    )
+    return FakeCrewRuntime(
+        result=CrewRunResult(
+            crew_id="discovery",
+            status=CrewExecutionStatus.COMPLETED,
+            task_results=[
+                TaskRunResult(
+                    task_id="inspect_project", output="representative repository analysis"
+                ),
+                TaskRunResult(task_id="analyse_request", output="representative request analysis"),
+                TaskRunResult(
+                    task_id="identify_open_questions",
+                    output="representative open questions",
+                    pydantic_output=questions.model_dump(),
+                ),
+            ],
+            final_output="representative discovery output",
+        )
+    )
+
+
+def test_discovery_workflow_clear_request_generates_spec_and_traceable_inputs(
+    tmp_path: Path,
+) -> None:
+    _seed_discovery_repo(tmp_path)
+    runtime = FakeCrewRuntime()
+
+    result = DiscoveryWorkflow(tmp_path, runtime=runtime).start(
+        "Add a clearly scoped generic capability"
+    )
+
+    assert result.state.status == WorkflowStatus.WAITING_FOR_SPEC_APPROVAL
+    assert result.state.request_id == "REQ-0001"
+    assert result.state.feature_id == "FEAT-0001"
+    assert (tmp_path / "project" / "discovery" / "REQ-0001" / "repository-analysis.md").is_file()
+    assert (tmp_path / "project" / "discovery" / "REQ-0001" / "request-analysis.md").is_file()
+    assert (tmp_path / "project" / "discovery" / "REQ-0001" / "open-questions.md").is_file()
+    spec = tmp_path / "project" / "specifications" / "FEAT-0001.md"
+    assert spec.is_file()
+    assert "Satisfy the validated request" in spec.read_text(encoding="utf-8")
+    assert runtime.requests[0].inputs["repository_path"] == str(tmp_path.resolve())
+    assert runtime.requests[0].inputs["raw_request"] == "Add a clearly scoped generic capability"
+    assert ".factory.yaml" in runtime.requests[0].inputs["file_list"]
+    assert "project/context.md" in runtime.requests[0].inputs["required_files"]
+
+
+def test_discovery_workflow_ambiguous_request_suspends_without_spec(tmp_path: Path) -> None:
+    _seed_discovery_repo(tmp_path)
+
+    result = DiscoveryWorkflow(tmp_path, runtime=_runtime_with_questions(True)).start("Improve it")
+
+    assert result.state.status == WorkflowStatus.WAITING_FOR_CLARIFICATION
+    assert result.state.pending_questions == ["Which validated outcome should be specified?"]
+    assert not (tmp_path / "project" / "specifications" / "FEAT-0001.md").exists()
+    assert (tmp_path / "project" / "discovery" / "REQ-0001" / "open-questions.md").is_file()
+
+
+def test_discovery_workflow_resume_after_human_answers_writes_specification(tmp_path: Path) -> None:
+    _seed_discovery_repo(tmp_path)
+    workflow = DiscoveryWorkflow(tmp_path, runtime=_runtime_with_questions(True))
+    suspended = workflow.start("Clarify generic outcome")
+
+    resumed = workflow.resume_with_answers(
+        suspended.state.request_id, "Use the first neutral outcome."
+    )
+
+    assert resumed.state.status == WorkflowStatus.WAITING_FOR_SPEC_APPROVAL
+    assert resumed.state.pending_questions == []
+    assert (tmp_path / "project" / "specifications" / "FEAT-0001.md").is_file()
+
+
+@pytest.mark.parametrize(
+    ("verdict", "expected"),
+    [
+        (DiscoveryVerdict.APPROVED, WorkflowStatus.COMPLETED),
+        (DiscoveryVerdict.CHANGES_REQUESTED, WorkflowStatus.WAITING_FOR_CLARIFICATION),
+        (DiscoveryVerdict.REJECTED, WorkflowStatus.REJECTED),
+    ],
+)
+def test_discovery_product_owner_decisions_route_without_downstream_crews(
+    tmp_path: Path, verdict: DiscoveryVerdict, expected: WorkflowStatus
+) -> None:
+    _seed_discovery_repo(tmp_path)
+    workflow = DiscoveryWorkflow(tmp_path, runtime=FakeCrewRuntime())
+    result = workflow.start("Add a clearly scoped generic capability")
+
+    state = workflow.record_product_owner_decision(
+        result.state.request_id, verdict, required_changes=("Adjust acceptance criteria.",)
+    )
+
+    assert state.status == expected
+    assert state.status not in {WorkflowStatus.KNOWLEDGE_UPDATING, WorkflowStatus.DESIGN_RUNNING}
+
+
+def test_discovery_permissions_and_read_only_tools_limit_unsafe_access(tmp_path: Path) -> None:
+    _seed_discovery_repo(tmp_path)
+    workflow = DiscoveryWorkflow(tmp_path, runtime=FakeCrewRuntime())
+    workflow.start("Add a clearly scoped generic capability")
+    with pytest.raises(PermissionError):
+        workflow.artifacts.write_text("src/forbidden.py", "x")
+    tools = RepositoryReadOnlyTools(tmp_path)
+    with pytest.raises(ValueError):
+        tools.read_text("../outside.txt")
+    assert "pyproject.toml" in tools.dependency_summary()
+    assert "src/module.py" in tools.list_files()

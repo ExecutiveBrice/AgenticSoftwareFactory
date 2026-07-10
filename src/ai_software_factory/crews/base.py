@@ -28,6 +28,7 @@ class BaseCrew:
         self.artifacts = ArtifactService(repository_path, policy=self.policy)
         self._runtime = runtime
         self._runtime_factory = runtime_factory or DisabledCrewRuntimeFactory()
+        self.last_run_result: CrewRunResult | None = None
 
     def build(self) -> CrewDefinition:
         return load_crew_definition(self.crew_id)
@@ -49,6 +50,7 @@ class BaseCrew:
             if isinstance(raw_result, CrewRunResult)
             else CrewRunResult.model_validate(raw_result)
         )
+        self.last_run_result = run_result
         if run_result.crew_id != self.crew_id:
             return CrewExecutionResult(
                 crew_id=self.crew_id,

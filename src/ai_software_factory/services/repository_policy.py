@@ -79,8 +79,8 @@ _KNOWLEDGE_REPORTS = (
     PathRule.under("project/reviews/KNOWLEDGE"),
     PathRule.under("project/reports/knowledge"),
 )
-_DESIGN = (PathRule.under("project/architecture"),)
-_PLANNING = (PathRule.under("project/backlog"),)
+_DESIGN = (PathRule.under("project/architecture"), PathRule.under("project/design"))
+_PLANNING = (PathRule.under("project/backlog"), PathRule.under("project/planning"))
 _QA = (PathRule.under("project/reviews/QA"), PathRule.under("project/reports/qa"))
 _REVIEW = (PathRule.under("project/reviews/TECH"), PathRule.under("project/reports/tech"))
 _DEV_ARTIFACTS = (PathRule.under("project/development"), PathRule.under("project/reviews/DEV"))

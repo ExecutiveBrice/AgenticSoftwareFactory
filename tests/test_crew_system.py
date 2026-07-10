@@ -12,8 +12,14 @@ from ai_software_factory.crews import (
     FakeCrewRuntimeFactory,
     TaskRunResult,
 )
+from ai_software_factory.crews.design import DesignCrew
+from ai_software_factory.crews.development import DevelopmentCrew
 from ai_software_factory.crews.discovery import DiscoveryCrew
+from ai_software_factory.crews.knowledge import KnowledgeCrew
+from ai_software_factory.crews.planning import PlanningCrew
+from ai_software_factory.crews.qa import QaCrew
 from ai_software_factory.crews.registry import CrewRegistry
+from ai_software_factory.crews.review import ReviewCrew
 from ai_software_factory.crews.shared import validation as crew_validation
 from ai_software_factory.crews.shared.constants import CREW_IDS
 from ai_software_factory.crews.shared.validation import (
@@ -23,13 +29,19 @@ from ai_software_factory.crews.shared.validation import (
 from ai_software_factory.flows import FactoryFlow
 from ai_software_factory.flows.routing import assert_transition, route_qa, route_review
 from ai_software_factory.models import (
+    AcceptanceMatrixRow,
     AgentDefinition,
     CrewDefinition,
     CrewExecutionStatus,
+    DevelopmentManifest,
     DiscoveryQuestion,
     DiscoveryQuestions,
     DiscoveryVerdict,
+    PlanningGraph,
+    PlanningTask,
+    QAReport,
     QAVerdict,
+    ReviewReport,
     ReviewVerdict,
     TaskDefinition,
     WorkflowState,
@@ -989,3 +1001,174 @@ def test_discovery_permissions_and_read_only_tools_limit_unsafe_access(tmp_path:
         tools.read_text("../outside.txt")
     assert "pyproject.toml" in tools.dependency_summary()
     assert "src/module.py" in tools.list_files()
+
+
+def _completed_runtime(
+    crew_id: str, task_id: str, payload: dict[str, object] | None = None
+) -> FakeCrewRuntime:
+    return FakeCrewRuntime(
+        result=CrewRunResult(
+            crew_id=crew_id,
+            status=CrewExecutionStatus.COMPLETED,
+            task_results=[
+                TaskRunResult(task_id=task_id, output="structured output", pydantic_output=payload)
+            ],
+            final_output="final structured output",
+            message="completed",
+        )
+    )
+
+
+def test_knowledge_writes_controlled_artifacts_and_rejects_validated_decisions(
+    tmp_path: Path,
+) -> None:
+    runtime = _completed_runtime("knowledge", "collect_project_changes")
+
+    result = KnowledgeCrew(tmp_path, runtime=runtime).kickoff(request_id="REQ-0001")
+
+    assert result.status == CrewExecutionStatus.COMPLETED
+    assert (tmp_path / "project" / "context.md").is_file()
+    assert (
+        runtime.requests[0].inputs["decision_boundary"] == "proposals_are_not_validated_decisions"
+    )
+
+    bad = FakeCrewRuntime(
+        result=CrewRunResult(
+            crew_id="knowledge",
+            status=CrewExecutionStatus.COMPLETED,
+            task_results=[
+                TaskRunResult(task_id="audit_project_knowledge", output="validated decision")
+            ],
+        )
+    )
+    assert KnowledgeCrew(tmp_path, runtime=bad).kickoff().status == CrewExecutionStatus.FAILED
+
+
+def test_design_requires_approved_specification_and_records_conditional_inputs(
+    tmp_path: Path,
+) -> None:
+    runtime = _completed_runtime("design", "review_design")
+
+    with pytest.raises(ValueError, match="approved specification"):
+        DesignCrew(tmp_path, runtime=runtime).kickoff(specification_approved="false")
+
+    result = DesignCrew(tmp_path, runtime=runtime).kickoff(
+        request_id="REQ-0001", specification_approved="true", enable_ux="true"
+    )
+
+    assert result.status == CrewExecutionStatus.COMPLETED
+    assert runtime.requests[-1].inputs["enable_ux"] == "true"
+    assert runtime.requests[-1].inputs["enable_domain"] == "false"
+    assert (tmp_path / "project" / "design" / "REQ-0001" / "review_design.md").is_file()
+
+
+def test_planning_validates_acyclic_task_graph_and_writes_backlog_artifacts(tmp_path: Path) -> None:
+    graph = PlanningGraph(
+        tasks=[
+            PlanningTask(id="TASK-1", title="Small task", verification="Run focused check"),
+            PlanningTask(
+                id="TASK-2",
+                title="Small follow-up",
+                verification="Run focused check",
+                depends_on=["TASK-1"],
+            ),
+        ]
+    )
+    runtime = _completed_runtime("planning", "validate_task_graph", graph.model_dump())
+
+    result = PlanningCrew(tmp_path, runtime=runtime).kickoff(
+        request_id="REQ-0001", design_approved="true"
+    )
+
+    assert result.status == CrewExecutionStatus.COMPLETED
+    assert runtime.requests[0].inputs["task_sizing"] == "small_verifiable_tasks"
+    assert (tmp_path / "project" / "planning" / "REQ-0001" / "validate_task_graph.md").is_file()
+
+    cyclic = PlanningGraph(
+        tasks=[
+            PlanningTask(id="TASK-1", title="A", verification="Check", depends_on=["TASK-2"]),
+            PlanningTask(id="TASK-2", title="B", verification="Check", depends_on=["TASK-1"]),
+        ]
+    )
+    bad_runtime = _completed_runtime("planning", "validate_task_graph", cyclic.model_dump())
+    assert (
+        PlanningCrew(tmp_path, runtime=bad_runtime).kickoff(design_approved="true").status
+        == CrewExecutionStatus.FAILED
+    )
+
+
+def test_development_requires_single_safe_task_and_manifest(tmp_path: Path) -> None:
+    manifest = DevelopmentManifest(task_id="TASK-1", changed_files=["src/allowed.py"]).model_dump()
+    runtime = _completed_runtime("development", "prepare_implementation_manifest", manifest)
+
+    with pytest.raises(ValueError, match="destructive"):
+        DevelopmentCrew(tmp_path, task_paths=("src/allowed.py",), runtime=runtime).kickoff(
+            command="rm -rf ."
+        )
+
+    result = DevelopmentCrew(tmp_path, task_paths=("src/allowed.py",), runtime=runtime).kickoff(
+        task_id="TASK-1"
+    )
+
+    assert result.status == CrewExecutionStatus.COMPLETED
+    assert runtime.requests[-1].inputs["command_runner"] == "safe_explicit_commands_only"
+    assert (
+        tmp_path / "project" / "development" / "TASK-1" / "prepare_implementation_manifest.md"
+    ).is_file()
+
+    missing_manifest = _completed_runtime("development", "self_review_implementation")
+    assert (
+        DevelopmentCrew(tmp_path, runtime=missing_manifest).kickoff().status
+        == CrewExecutionStatus.FAILED
+    )
+
+
+def test_qa_requires_read_only_structured_matrix(tmp_path: Path) -> None:
+    report = QAReport(
+        verdict=QAVerdict.PASSED,
+        tested_scope=["TASK-1"],
+        evidence=["pytest passed"],
+        acceptance_matrix=[
+            AcceptanceMatrixRow(criterion="criterion", test="test", evidence="evidence")
+        ],
+    ).model_dump()
+    runtime = _completed_runtime("qa", "write_qa_report", report)
+
+    result = QaCrew(tmp_path, runtime=runtime).kickoff(task_id="TASK-1")
+
+    assert result.status == CrewExecutionStatus.COMPLETED
+    assert runtime.requests[0].inputs["code_access"] == "read_only"
+    assert (tmp_path / "project" / "reviews" / "QA" / "TASK-1-write_qa_report.md").is_file()
+
+    bad_report = {**report, "acceptance_matrix": []}
+    assert (
+        QaCrew(tmp_path, runtime=_completed_runtime("qa", "write_qa_report", bad_report))
+        .kickoff()
+        .status
+        == CrewExecutionStatus.FAILED
+    )
+
+
+def test_review_refuses_failed_qa_and_requires_structured_verdict(tmp_path: Path) -> None:
+    report = ReviewReport(verdict=ReviewVerdict.APPROVED, reviewed_scope=["TASK-1"]).model_dump()
+    runtime = _completed_runtime("review", "issue_final_review", report)
+
+    with pytest.raises(ValueError, match="QA FAILED or BLOCKED"):
+        ReviewCrew(tmp_path, runtime=runtime).kickoff(qa_verdict=QAVerdict.FAILED.value)
+
+    result = ReviewCrew(tmp_path, runtime=runtime).kickoff(
+        request_id="REQ-0001", qa_verdict=QAVerdict.PASSED.value
+    )
+
+    assert result.status == CrewExecutionStatus.COMPLETED
+    assert runtime.requests[-1].inputs["follow_up_policy"] == "proposals_not_approved_tasks"
+    assert (
+        tmp_path / "project" / "reviews" / "TECH" / "REQ-0001" / "issue_final_review.md"
+    ).is_file()
+
+    assert (
+        ReviewCrew(tmp_path, runtime=_completed_runtime("review", "consolidate_review_findings"))
+        .kickoff()
+        .status
+        == CrewExecutionStatus.FAILED
+    )

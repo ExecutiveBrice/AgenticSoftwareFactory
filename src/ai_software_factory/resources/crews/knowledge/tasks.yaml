@@ -1,11 +1,11 @@
 tasks:
   collect_project_changes:
-    description: 'Use the available inputs: validated upstream artefacts, approved diffs, manifests, decisions, and existing project documentation. Analyse what changed, which knowledge artefacts are affected, and what evidence supports each update. Do not modify source code, rewrite unrelated documentation, or infer project facts without evidence; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown change inventory with affected artefacts and evidence table. Completion criteria: all applicable knowledge updates are identified with source artefacts and no unrelated files are targeted. Expected artefacts or paths: project/reviews/knowledge-change-inventory.md.'
+    description: 'Use the available inputs: validated upstream artefacts, approved diffs, manifests, decisions, and existing project documentation. Analyse what changed, which knowledge artefacts are affected, and what evidence supports each update. Do not modify source code, rewrite unrelated documentation, or infer project facts without evidence; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown change inventory with affected artefacts and evidence table. Completion criteria: all applicable knowledge updates are identified with source artefacts and no unrelated files are targeted. Expected artefacts or paths: project/reviews/KNOWLEDGE/change-inventory.md.'
     expected_output: Knowledge change inventory mapping validated changes to affected context, glossary, roadmap, decisions, and changelog artefacts.
     agent: project_librarian
     context: []
     markdown: true
-    output_file: project/reviews/knowledge-change-inventory.md
+    output_file: project/reviews/KNOWLEDGE/change-inventory.md
     create_directory: true
   update_project_context:
     description: 'Use the available inputs: collect_project_changes and the current target knowledge artefact. Analyse the minimal evidence-backed update needed for this artefact. Do not overwrite validated knowledge wholesale, introduce domain-specific assumptions, or update unrelated artefacts; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown patch-ready content or decision entry with Evidence and Change Summary sections. Completion criteria: changes are minimal, traceable, internally consistent, and safe to apply independently. Expected artefacts or paths: project/context.md.'
@@ -49,7 +49,7 @@ tasks:
     markdown: true
     output_file: project/changelog.md
   audit_project_knowledge:
-    description: 'Use the available inputs: collect_project_changes and all knowledge update outputs. Analyse consistency, omissions, duplicate facts, and unresolved documentation risks. Do not modify source code or approve inconsistent knowledge; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown audit with verdict, checked artefacts, inconsistencies, follow-ups, and no-op confirmations. Completion criteria: every applicable update is reviewed and remaining issues are explicit. Expected artefacts or paths: project/reviews/knowledge-audit.md.'
+    description: 'Use the available inputs: collect_project_changes and all knowledge update outputs. Analyse consistency, omissions, duplicate facts, and unresolved documentation risks. Do not modify source code or approve inconsistent knowledge; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown audit with verdict, checked artefacts, inconsistencies, follow-ups, and no-op confirmations. Completion criteria: every applicable update is reviewed and remaining issues are explicit. Expected artefacts or paths: project/reviews/KNOWLEDGE/audit.md.'
     expected_output: Knowledge audit report confirming consistency of all applicable updates or listing required corrections.
     agent: documentation_auditor
     context:
@@ -60,4 +60,4 @@ tasks:
     - record_decisions
     - update_changelog
     markdown: true
-    output_file: project/reviews/knowledge-audit.md
+    output_file: project/reviews/KNOWLEDGE/audit.md

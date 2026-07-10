@@ -2,23 +2,19 @@ from pathlib import Path
 
 from ai_software_factory.crews.shared.validation import load_crew_definition
 from ai_software_factory.models import CrewDefinition, CrewExecutionResult, CrewExecutionStatus
-from ai_software_factory.services import ArtifactService
+from ai_software_factory.services import ArtifactService, policy_for_crew
 
 
 class BaseCrew:
     crew_id: str
-    allowed_write_roots: tuple[str, ...] = ("project/",)
 
-    def __init__(self, repository_path: Path) -> None:
+    def __init__(self, repository_path: Path, *, task_paths: tuple[str | Path, ...] = ()) -> None:
         self.repository_path = repository_path
-        self.artifacts = ArtifactService(repository_path)
+        self.policy = policy_for_crew(self.crew_id, task_paths=task_paths)
+        self.artifacts = ArtifactService(repository_path, policy=self.policy)
 
     def build(self) -> CrewDefinition:
         return load_crew_definition(self.crew_id)
-
-    def _check_write(self, relative_path: str) -> None:
-        if not any(relative_path.startswith(root) for root in self.allowed_write_roots):
-            raise PermissionError(relative_path)
 
     def kickoff(self, **kwargs: str) -> CrewExecutionResult:
         return CrewExecutionResult(

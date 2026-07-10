@@ -17,7 +17,14 @@ from .structured_outputs import (
     ReviewReport,
 )
 from .verdict import DiscoveryVerdict, QAVerdict, ReviewVerdict
-from .workflow import WorkflowState, WorkflowStatus
+from .workflow import (
+    HumanDecisionRecord,
+    HumanRequestRecord,
+    HumanRequestStatus,
+    HumanRequestType,
+    WorkflowState,
+    WorkflowStatus,
+)
 
 __all__ = [
     "ArtifactReference",
@@ -37,6 +44,10 @@ __all__ = [
     "DiscoveryVerdict",
     "QAVerdict",
     "ReviewVerdict",
+    "HumanDecisionRecord",
+    "HumanRequestRecord",
+    "HumanRequestStatus",
+    "HumanRequestType",
     "WorkflowState",
     "WorkflowStatus",
 ]

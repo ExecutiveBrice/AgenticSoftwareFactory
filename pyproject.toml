@@ -38,6 +38,7 @@ packages = ["src/ai_software_factory"]
 "src/ai_software_factory/resources" = "ai_software_factory/resources"
 
 [tool.pytest.ini_options]
+pythonpath = ["src"]
 testpaths = ["tests"]
 addopts = "-ra"
 markers = [

@@ -27,6 +27,41 @@ class WorkflowStatus(StrEnum):
     FAILED = "FAILED"
 
 
+class HumanRequestType(StrEnum):
+    CLARIFICATION = "CLARIFICATION"
+    APPROVAL = "APPROVAL"
+
+
+class HumanRequestStatus(StrEnum):
+    PENDING = "PENDING"
+    ANSWERED = "ANSWERED"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    CHANGES_REQUESTED = "CHANGES_REQUESTED"
+
+
+class HumanDecisionRecord(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    value: str
+    answer: str | None = None
+    date: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+
+class HumanRequestRecord(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    id: str
+    request_id: str
+    stage: WorkflowStatus
+    type: HumanRequestType
+    question_or_decision: str
+    valid_options: list[str] = Field(default_factory=list)
+    context: dict[str, str] = Field(default_factory=dict)
+    artifact_paths: list[Path] = Field(default_factory=list)
+    date: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    status: HumanRequestStatus = HumanRequestStatus.PENDING
+    decisions: list[HumanDecisionRecord] = Field(default_factory=list)
+
+
 class WorkflowState(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     request_id: str
@@ -41,6 +76,7 @@ class WorkflowState(BaseModel):
     qa_verdict: QAVerdict | None = None
     review_verdict: ReviewVerdict | None = None
     pending_questions: list[str] = Field(default_factory=list)
+    human_requests: list[HumanRequestRecord] = Field(default_factory=list)
     transition_history: list[str] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))

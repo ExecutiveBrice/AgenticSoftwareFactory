@@ -57,28 +57,37 @@ def request(raw_request: str) -> None:
 
 @app.command("status")
 def status(request_id: str) -> None:
-    state = FactoryFlow(Path.cwd()).resume(request_id)
+    state = FactoryFlow(Path.cwd()).status(request_id)
     typer.echo(f"{state.request_id}: {state.status}")
+    for human_request in state.human_requests:
+        if human_request.status == "PENDING":
+            typer.echo(f"pending {human_request.id}: {human_request.type} {human_request.stage}")
 
 
 @app.command("resume")
 def resume(request_id: str) -> None:
-    status(request_id)
+    state = FactoryFlow(Path.cwd()).resume(request_id)
+    typer.echo(f"{state.request_id}: {state.status}")
 
 
 @app.command("approve")
-def approve(request_id: str) -> None:
-    typer.echo(f"Approval recorded for {request_id}; orchestration resume is MVP-only.")
+def approve(request_id: str, human_request_id: str | None = None) -> None:
+    state = FactoryFlow(Path.cwd()).approve(request_id, human_request_id=human_request_id)
+    typer.echo(f"{state.request_id}: {state.status}")
 
 
 @app.command("reject")
-def reject(request_id: str) -> None:
-    typer.echo(f"Rejection recorded for {request_id}; orchestration resume is MVP-only.")
+def reject(request_id: str, human_request_id: str | None = None) -> None:
+    state = FactoryFlow(Path.cwd()).reject(request_id, human_request_id=human_request_id)
+    typer.echo(f"{state.request_id}: {state.status}")
 
 
 @app.command("answer")
-def answer(request_id: str, answer_text: str) -> None:
-    typer.echo(f"Answer recorded for {request_id}: {answer_text}")
+def answer(request_id: str, answer_text: str, human_request_id: str | None = None) -> None:
+    state = FactoryFlow(Path.cwd()).answer(
+        request_id, answer_text, human_request_id=human_request_id
+    )
+    typer.echo(f"{state.request_id}: {state.status}")
 
 
 @app.command("discovery")

@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ai_software_factory.crews.discovery import DiscoveryCrew
 from ai_software_factory.crews.runtime import CrewRuntime
+from ai_software_factory.flows import FactoryFlow
 from ai_software_factory.flows.persistence import StateStore
 from ai_software_factory.models import (
     CrewExecutionStatus,
@@ -62,6 +63,7 @@ class DiscoveryWorkflow:
             state.status = WorkflowStatus.WAITING_FOR_CLARIFICATION
             state.current_stage = WorkflowStatus.WAITING_FOR_CLARIFICATION
             state.transition_history.append("DISCOVERY_RUNNING->WAITING_FOR_CLARIFICATION")
+            FactoryFlow(self.repository_path).ensure_human_request(state)
             self.store.save(state)
             return DiscoveryRunResult(state, tuple(written))
         spec_artifacts = self._write_specification_artifacts(
@@ -72,6 +74,7 @@ class DiscoveryWorkflow:
         state.status = WorkflowStatus.WAITING_FOR_SPEC_APPROVAL
         state.current_stage = WorkflowStatus.WAITING_FOR_SPEC_APPROVAL
         state.transition_history.append("DISCOVERY_RUNNING->WAITING_FOR_SPEC_APPROVAL")
+        FactoryFlow(self.repository_path).ensure_human_request(state)
         self.store.save(state)
         return DiscoveryRunResult(state, tuple(written))
 
@@ -91,6 +94,7 @@ class DiscoveryWorkflow:
         state.status = WorkflowStatus.WAITING_FOR_SPEC_APPROVAL
         state.current_stage = WorkflowStatus.WAITING_FOR_SPEC_APPROVAL
         state.transition_history.append("WAITING_FOR_CLARIFICATION->WAITING_FOR_SPEC_APPROVAL")
+        FactoryFlow(self.repository_path).ensure_human_request(state)
         self.store.save(state)
         return DiscoveryRunResult(state, tuple(written))
 
@@ -113,6 +117,7 @@ class DiscoveryWorkflow:
             state.status = WorkflowStatus.REJECTED
         state.current_stage = state.status
         state.transition_history.append(f"WAITING_FOR_SPEC_APPROVAL->{state.status}: {verdict}")
+        FactoryFlow(self.repository_path).ensure_human_request(state)
         self.store.save(state)
         return state
 

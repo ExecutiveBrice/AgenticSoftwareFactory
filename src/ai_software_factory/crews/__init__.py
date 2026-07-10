@@ -1,6 +1,10 @@
 """Crew orchestration components."""
 
 from ai_software_factory.crews.runtime import (
+    CrewAIConfig,
+    CrewAIConfigurationError,
+    CrewAIRuntime,
+    CrewAIRuntimeFactory,
     CrewRunRequest,
     CrewRunResult,
     CrewRuntime,
@@ -17,6 +21,10 @@ __all__ = [
     "CrewRunResult",
     "CrewRuntime",
     "CrewRuntimeFactory",
+    "CrewAIConfig",
+    "CrewAIConfigurationError",
+    "CrewAIRuntime",
+    "CrewAIRuntimeFactory",
     "DisabledCrewRuntime",
     "DisabledCrewRuntimeFactory",
     "FakeCrewRuntime",

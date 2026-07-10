@@ -12,6 +12,10 @@ class AgentDefinition(BaseModel):
     role: str
     goal: str
     backstory: str
+    allow_delegation: bool = False
+    verbose: bool = False
+    max_iter: int | None = None
+    respect_context_window: bool = False
 
 
 class TaskDefinition(BaseModel):
@@ -22,7 +26,13 @@ class TaskDefinition(BaseModel):
     agent: str
     context: list[str] = Field(default_factory=list)
     output_path: str | None = None
+    output_file: str | None = None
     optional: bool = False
+    markdown: bool = False
+    human_input: bool = False
+    guardrail: str | None = None
+    output_model: str | None = None
+    create_directory: bool = False
 
 
 class CrewDefinition(BaseModel):

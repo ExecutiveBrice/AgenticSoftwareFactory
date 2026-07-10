@@ -1,31 +1,57 @@
 tasks:
   create_feature_delivery_plan:
-    description: Execute create_feature_delivery_plan for the planning stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the create_feature_delivery_plan responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/planning/{request_id}/create_feature_delivery_plan.md.'
+    expected_output: Precise planning artefact for create_feature_delivery_plan with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: delivery_planner
     context: []
+    markdown: true
+    output_file: project/planning/{request_id}/create_feature_delivery_plan.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   create_epic:
-    description: Execute create_epic for the planning stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the create_epic responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/planning/{request_id}/create_epic.md.'
+    expected_output: Precise planning artefact for create_epic with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: technical_task_writer
-    context: []
+    context:
+    - create_feature_delivery_plan
+    markdown: true
+    output_file: project/planning/{request_id}/create_epic.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   create_implementation_tasks:
-    description: Execute create_implementation_tasks for the planning stage.
-    expected_output: Validated markdown or YAML artifact.
-    agent: test_planner
-    context: []
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the create_implementation_tasks responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/planning/{request_id}/create_implementation_tasks.md.'
+    expected_output: Precise planning artefact for create_implementation_tasks with evidence, decisions, risks, completion checklist, and downstream handoff notes.
+    agent: technical_task_writer
+    context:
+    - create_epic
+    - create_feature_delivery_plan
+    markdown: true
+    output_file: project/planning/{request_id}/create_implementation_tasks.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   create_test_plan:
-    description: Execute create_test_plan for the planning stage.
-    expected_output: Validated markdown or YAML artifact.
-    agent: dependency_reviewer
-    context: []
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the create_test_plan responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/planning/{request_id}/create_test_plan.md.'
+    expected_output: Precise planning artefact for create_test_plan with evidence, decisions, risks, completion checklist, and downstream handoff notes.
+    agent: test_planner
+    context:
+    - create_implementation_tasks
+    markdown: true
+    output_file: project/planning/{request_id}/create_test_plan.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   validate_task_graph:
-    description: Execute validate_task_graph for the planning stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the validate_task_graph responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/planning/{request_id}/validate_task_graph.md.'
+    expected_output: Precise planning artefact for validate_task_graph with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: dependency_reviewer
-    context: []
+    context:
+    - create_implementation_tasks
+    - create_test_plan
+    markdown: true
+    output_file: project/planning/{request_id}/validate_task_graph.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   prepare_backlog_validation:
-    description: Execute prepare_backlog_validation for the planning stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the prepare_backlog_validation responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/planning/{request_id}/prepare_backlog_validation.md.'
+    expected_output: Precise planning artefact for prepare_backlog_validation with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: dependency_reviewer
-    context: []
+    context:
+    - validate_task_graph
+    markdown: true
+    output_file: project/planning/{request_id}/prepare_backlog_validation.md
+    human_input: true
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.

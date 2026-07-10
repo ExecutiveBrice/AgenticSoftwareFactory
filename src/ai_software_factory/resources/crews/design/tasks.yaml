@@ -1,41 +1,79 @@
 tasks:
   analyse_design_context:
-    description: Execute analyse_design_context for the design stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the analyse_design_context responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/design/{request_id}/analyse_design_context.md.'
+    expected_output: Precise design artefact for analyse_design_context with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: solution_architect
     context: []
+    markdown: true
+    output_file: project/design/{request_id}/analyse_design_context.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   design_domain_changes:
-    description: Execute design_domain_changes for the design stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the design_domain_changes responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/design/{request_id}/design_domain_changes.md.'
+    expected_output: Precise design artefact for design_domain_changes with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: domain_designer
-    context: []
+    context:
+    - analyse_design_context
+    markdown: true
+    output_file: project/design/{request_id}/design_domain_changes.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   design_user_experience:
-    description: Execute design_user_experience for the design stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the design_user_experience responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/design/{request_id}/design_user_experience.md.'
+    expected_output: Precise design artefact for design_user_experience with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: ux_designer
-    context: []
-  design_technical_solution:
-    description: Execute design_technical_solution for the design stage.
-    expected_output: Validated markdown or YAML artifact.
-    agent: security_architect
-    context: []
+    context:
+    - analyse_design_context
+    markdown: true
+    output_file: project/design/{request_id}/design_user_experience.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   assess_security_and_privacy:
-    description: Execute assess_security_and_privacy for the design stage.
-    expected_output: Validated markdown or YAML artifact.
-    agent: design_reviewer
-    context: []
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the assess_security_and_privacy responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/design/{request_id}/assess_security_and_privacy.md.'
+    expected_output: Precise design artefact for assess_security_and_privacy with evidence, decisions, risks, completion checklist, and downstream handoff notes.
+    agent: security_architect
+    context:
+    - analyse_design_context
+    markdown: true
+    output_file: project/design/{request_id}/assess_security_and_privacy.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
+  design_technical_solution:
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the design_technical_solution responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/design/{request_id}/design_technical_solution.md.'
+    expected_output: Precise design artefact for design_technical_solution with evidence, decisions, risks, completion checklist, and downstream handoff notes.
+    agent: solution_architect
+    context:
+    - design_domain_changes
+    - design_user_experience
+    - assess_security_and_privacy
+    markdown: true
+    output_file: project/design/{request_id}/design_technical_solution.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   propose_architecture_decisions:
-    description: Execute propose_architecture_decisions for the design stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the propose_architecture_decisions responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/design/{request_id}/propose_architecture_decisions.md.'
+    expected_output: Precise design artefact for propose_architecture_decisions with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: design_reviewer
-    context: []
+    context:
+    - design_technical_solution
+    markdown: true
+    output_file: project/design/{request_id}/propose_architecture_decisions.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   review_design:
-    description: Execute review_design for the design stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the review_design responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/design/{request_id}/review_design.md.'
+    expected_output: Precise design artefact for review_design with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: design_reviewer
-    context: []
+    context:
+    - design_domain_changes
+    - design_user_experience
+    - assess_security_and_privacy
+    - design_technical_solution
+    - propose_architecture_decisions
+    markdown: true
+    output_file: project/design/{request_id}/review_design.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   prepare_design_validation:
-    description: Execute prepare_design_validation for the design stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the prepare_design_validation responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/design/{request_id}/prepare_design_validation.md.'
+    expected_output: Precise design artefact for prepare_design_validation with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: design_reviewer
-    context: []
+    context:
+    - review_design
+    markdown: true
+    output_file: project/design/{request_id}/prepare_design_validation.md
+    human_input: true
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.

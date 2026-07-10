@@ -1,41 +1,76 @@
 tasks:
   inspect_task_context:
-    description: Execute inspect_task_context for the development stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the inspect_task_context responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/development/{task_id}/inspect_task_context.md.'
+    expected_output: Precise development artefact for inspect_task_context with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: codebase_analyst
     context: []
+    markdown: true
+    output_file: project/development/{task_id}/inspect_task_context.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   prepare_implementation_plan:
-    description: Execute prepare_implementation_plan for the development stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the prepare_implementation_plan responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/development/{task_id}/prepare_implementation_plan.md.'
+    expected_output: Precise development artefact for prepare_implementation_plan with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: software_developer
-    context: []
+    context:
+    - inspect_task_context
+    markdown: true
+    output_file: project/development/{task_id}/prepare_implementation_plan.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   implement_task:
-    description: Execute implement_task for the development stage.
-    expected_output: Validated markdown or YAML artifact.
-    agent: test_developer
-    context: []
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the implement_task responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/development/{task_id}/implement_task.md.'
+    expected_output: Precise development artefact for implement_task with evidence, decisions, risks, completion checklist, and downstream handoff notes.
+    agent: software_developer
+    context:
+    - prepare_implementation_plan
+    markdown: true
+    output_file: project/development/{task_id}/implement_task.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   implement_tests:
-    description: Execute implement_tests for the development stage.
-    expected_output: Validated markdown or YAML artifact.
-    agent: documentation_developer
-    context: []
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the implement_tests responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/development/{task_id}/implement_tests.md.'
+    expected_output: Precise development artefact for implement_tests with evidence, decisions, risks, completion checklist, and downstream handoff notes.
+    agent: test_developer
+    context:
+    - implement_task
+    markdown: true
+    output_file: project/development/{task_id}/implement_tests.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   update_local_documentation:
-    description: Execute update_local_documentation for the development stage.
-    expected_output: Validated markdown or YAML artifact.
-    agent: implementation_reviewer
-    context: []
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the update_local_documentation responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/development/{task_id}/update_local_documentation.md.'
+    expected_output: Precise development artefact for update_local_documentation with evidence, decisions, risks, completion checklist, and downstream handoff notes.
+    agent: documentation_developer
+    context:
+    - implement_task
+    - implement_tests
+    markdown: true
+    output_file: project/development/{task_id}/update_local_documentation.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   run_development_checks:
-    description: Execute run_development_checks for the development stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the run_development_checks responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/development/{task_id}/run_development_checks.md.'
+    expected_output: Precise development artefact for run_development_checks with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: implementation_reviewer
-    context: []
+    context:
+    - implement_task
+    - implement_tests
+    - update_local_documentation
+    markdown: true
+    output_file: project/development/{task_id}/run_development_checks.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   self_review_implementation:
-    description: Execute self_review_implementation for the development stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the self_review_implementation responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/development/{task_id}/self_review_implementation.md.'
+    expected_output: Precise development artefact for self_review_implementation with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: implementation_reviewer
-    context: []
+    context:
+    - run_development_checks
+    markdown: true
+    output_file: project/development/{task_id}/self_review_implementation.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   prepare_implementation_manifest:
-    description: Execute prepare_implementation_manifest for the development stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the prepare_implementation_manifest responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/development/{task_id}/prepare_implementation_manifest.md.'
+    expected_output: Precise development artefact for prepare_implementation_manifest with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: implementation_reviewer
-    context: []
+    context:
+    - self_review_implementation
+    markdown: true
+    output_file: project/development/{task_id}/prepare_implementation_manifest.md
+    output_model: DevelopmentManifest
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.

@@ -1,31 +1,55 @@
 tasks:
   review_code_quality:
-    description: Execute review_code_quality for the review stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the review_code_quality responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/reviews/{request_id}/review_code_quality.md.'
+    expected_output: Precise review artefact for review_code_quality with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: code_reviewer
     context: []
+    markdown: true
+    output_file: project/reviews/{request_id}/review_code_quality.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   review_architecture_compliance:
-    description: Execute review_architecture_compliance for the review stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the review_architecture_compliance responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/reviews/{request_id}/review_architecture_compliance.md.'
+    expected_output: Precise review artefact for review_architecture_compliance with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: architecture_reviewer
     context: []
+    markdown: true
+    output_file: project/reviews/{request_id}/review_architecture_compliance.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   review_security:
-    description: Execute review_security for the review stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the review_security responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/reviews/{request_id}/review_security.md.'
+    expected_output: Precise review artefact for review_security with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: security_reviewer
     context: []
+    markdown: true
+    output_file: project/reviews/{request_id}/review_security.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   review_delivery_readiness:
-    description: Execute review_delivery_readiness for the review stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the review_delivery_readiness responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/reviews/{request_id}/review_delivery_readiness.md.'
+    expected_output: Precise review artefact for review_delivery_readiness with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: release_reviewer
     context: []
+    markdown: true
+    output_file: project/reviews/{request_id}/review_delivery_readiness.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   consolidate_review_findings:
-    description: Execute consolidate_review_findings for the review stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the consolidate_review_findings responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/reviews/{request_id}/consolidate_review_findings.md.'
+    expected_output: Precise review artefact for consolidate_review_findings with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: review_lead
-    context: []
+    context:
+    - review_code_quality
+    - review_architecture_compliance
+    - review_security
+    - review_delivery_readiness
+    markdown: true
+    output_file: project/reviews/{request_id}/consolidate_review_findings.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   issue_final_review:
-    description: Execute issue_final_review for the review stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the issue_final_review responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/reviews/{request_id}/issue_final_review.md.'
+    expected_output: Precise review artefact for issue_final_review with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: review_lead
-    context: []
+    context:
+    - consolidate_review_findings
+    markdown: true
+    output_file: project/reviews/{request_id}/issue_final_review.md
+    output_model: ReviewReport
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.

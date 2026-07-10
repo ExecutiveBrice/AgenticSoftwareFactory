@@ -1,36 +1,67 @@
 tasks:
   review_acceptance_criteria:
-    description: Execute review_acceptance_criteria for the qa stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the review_acceptance_criteria responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/reviews/QA-{task_id}-review_acceptance_criteria.md.'
+    expected_output: Precise qa artefact for review_acceptance_criteria with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: qa_analyst
     context: []
+    markdown: true
+    output_file: project/reviews/QA-{task_id}-review_acceptance_criteria.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   build_acceptance_matrix:
-    description: Execute build_acceptance_matrix for the qa stage.
-    expected_output: Validated markdown or YAML artifact.
-    agent: test_executor
-    context: []
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the build_acceptance_matrix responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/reviews/QA-{task_id}-build_acceptance_matrix.md.'
+    expected_output: Precise qa artefact for build_acceptance_matrix with evidence, decisions, risks, completion checklist, and downstream handoff notes.
+    agent: qa_analyst
+    context:
+    - review_acceptance_criteria
+    markdown: true
+    output_file: project/reviews/QA-{task_id}-build_acceptance_matrix.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   execute_targeted_tests:
-    description: Execute execute_targeted_tests for the qa stage.
-    expected_output: Validated markdown or YAML artifact.
-    agent: regression_analyst
-    context: []
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the execute_targeted_tests responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/reviews/QA-{task_id}-execute_targeted_tests.md.'
+    expected_output: Precise qa artefact for execute_targeted_tests with evidence, decisions, risks, completion checklist, and downstream handoff notes.
+    agent: test_executor
+    context:
+    - build_acceptance_matrix
+    markdown: true
+    output_file: project/reviews/QA-{task_id}-execute_targeted_tests.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   execute_regression_tests:
-    description: Execute execute_regression_tests for the qa stage.
-    expected_output: Validated markdown or YAML artifact.
-    agent: qa_reporter
-    context: []
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the execute_regression_tests responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/reviews/QA-{task_id}-execute_regression_tests.md.'
+    expected_output: Precise qa artefact for execute_regression_tests with evidence, decisions, risks, completion checklist, and downstream handoff notes.
+    agent: regression_analyst
+    context:
+    - execute_targeted_tests
+    markdown: true
+    output_file: project/reviews/QA-{task_id}-execute_regression_tests.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   verify_non_functional_requirements:
-    description: Execute verify_non_functional_requirements for the qa stage.
-    expected_output: Validated markdown or YAML artifact.
-    agent: qa_reporter
-    context: []
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the verify_non_functional_requirements responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/reviews/QA-{task_id}-verify_non_functional_requirements.md.'
+    expected_output: Precise qa artefact for verify_non_functional_requirements with evidence, decisions, risks, completion checklist, and downstream handoff notes.
+    agent: qa_analyst
+    context:
+    - execute_targeted_tests
+    - execute_regression_tests
+    markdown: true
+    output_file: project/reviews/QA-{task_id}-verify_non_functional_requirements.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   analyse_test_results:
-    description: Execute analyse_test_results for the qa stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the analyse_test_results responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/reviews/QA-{task_id}-analyse_test_results.md.'
+    expected_output: Precise qa artefact for analyse_test_results with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: qa_reporter
-    context: []
+    context:
+    - execute_targeted_tests
+    - execute_regression_tests
+    - verify_non_functional_requirements
+    markdown: true
+    output_file: project/reviews/QA-{task_id}-analyse_test_results.md
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.
   write_qa_report:
-    description: Execute write_qa_report for the qa stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: approved upstream artefacts, repository evidence, prior task context, current diff or test evidence when available. Analyse the write_qa_report responsibility in sequence and its impact on downstream routing. Do not broaden scope, invent missing decisions, modify unauthorized files, or reference any specific business domain, programming language, or framework; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with Inputs, Analysis, Decisions, Risks, Artefacts, and Completion Checklist sections. Completion criteria: inputs are consumed, constraints are respected, output is actionable for dependent tasks, and incomplete items are explicit. Expected artefacts or paths: project/reviews/QA-{task_id}-write_qa_report.md.'
+    expected_output: Precise qa artefact for write_qa_report with evidence, decisions, risks, completion checklist, and downstream handoff notes.
     agent: qa_reporter
-    context: []
+    context:
+    - analyse_test_results
+    markdown: true
+    output_file: project/reviews/QA-{task_id}-write_qa_report.md
+    output_model: QAReport
+    guardrail: Output must be consistent with all context tasks and contain no generic placeholder text.

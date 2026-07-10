@@ -24,7 +24,8 @@ dev = [
     "ruff>=0.5.0",
 ]
 crewai = [
-    "crewai>=0.70.0",
+    # CrewAIRuntime targets the public Agent/Task/Crew/Process APIs available in 0.121.x.
+    "crewai>=0.121.0,<1.0.0",
 ]
 
 [project.scripts]
@@ -39,6 +40,9 @@ packages = ["src/ai_software_factory"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
+markers = [
+    "crewai_integration: optional CrewAI integration tests requiring external credentials",
+]
 
 [tool.ruff]
 line-length = 100

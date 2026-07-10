@@ -25,9 +25,11 @@ from ai_software_factory.models import (
     AgentDefinition,
     CrewDefinition,
     CrewExecutionStatus,
+    DiscoveryQuestions,
     DiscoveryVerdict,
     QAVerdict,
     ReviewVerdict,
+    TaskDefinition,
     WorkflowState,
 )
 from ai_software_factory.services import ArtifactService, IdentifierService
@@ -654,3 +656,191 @@ def test_normal_package_import_does_not_import_crewai() -> None:
     __import__("ai_software_factory.crews")
 
     assert "crewai" not in sys.modules
+
+
+class _FakeAgent:
+    def __init__(self, **kwargs: object) -> None:
+        self.kwargs = kwargs
+
+
+class _FakeTask:
+    def __init__(self, **kwargs: object) -> None:
+        self.kwargs = kwargs
+        self.output = f"task:{kwargs['description']}"
+
+
+class _FakeProcess:
+    sequential = "sequential"
+
+
+class _FakeCrewOutput:
+    raw = "final raw output"
+    usage_metrics = {"total_tokens": 3}
+
+    def __init__(self) -> None:
+        self.tasks_output = [
+            type("TaskOutput", (), {"name": "first", "raw": "first raw", "pydantic": None})(),
+            type(
+                "TaskOutput",
+                (),
+                {
+                    "name": "second",
+                    "raw": "second raw",
+                    "pydantic": DiscoveryQuestions(questions=[], can_continue_without_human=True),
+                },
+            )(),
+        ]
+
+
+class _FakeCrew:
+    created: list["_FakeCrew"] = []
+
+    def __init__(self, **kwargs: object) -> None:
+        self.kwargs = kwargs
+        self.kickoff_inputs: dict[str, str] | None = None
+        _FakeCrew.created.append(self)
+
+    def kickoff(self, *, inputs: dict[str, str]) -> _FakeCrewOutput:
+        self.kickoff_inputs = inputs
+        return _FakeCrewOutput()
+
+
+class _FakeCrewAIModule:
+    Agent = _FakeAgent
+    Task = _FakeTask
+    Crew = _FakeCrew
+    Process = _FakeProcess
+
+
+def _runtime_definition() -> CrewDefinition:
+    return CrewDefinition(
+        id="runtime",
+        description="runtime",
+        agents=[AgentDefinition(id="analyst", role="Role", goal="Goal", backstory="Backstory")],
+        tasks=[
+            TaskDefinition(
+                id="first",
+                description="First generic task.",
+                expected_output="First generic output.",
+                agent="analyst",
+            ),
+            TaskDefinition(
+                id="second",
+                description="Second generic task.",
+                expected_output="Second generic output.",
+                agent="analyst",
+                context=["first"],
+                output_model="DiscoveryQuestions",
+            ),
+        ],
+    )
+
+
+def test_crewai_runtime_builds_agents_tasks_context_and_sequential_order(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from ai_software_factory.crews.runtime import CrewAIConfig, CrewAIRuntime
+
+    monkeypatch.setattr(CrewAIRuntime, "_crewai_module", staticmethod(lambda: _FakeCrewAIModule))
+    runtime = CrewAIRuntime(CrewAIConfig(llm="configured-llm"))
+
+    crew = runtime.build_crew(_runtime_definition())
+
+    agent = crew.kwargs["agents"][0]
+    first, second = crew.kwargs["tasks"]
+    assert agent.kwargs["llm"] == "configured-llm"
+    assert agent.kwargs["tools"] == []
+    assert agent.kwargs["allow_code_execution"] is False
+    assert first.kwargs["context"] == []
+    assert second.kwargs["context"] == [first]
+    assert second.kwargs["output_pydantic"] is DiscoveryQuestions
+    assert crew.kwargs["process"] == _FakeProcess.sequential
+    assert crew.kwargs["tasks"] == [first, second]
+
+
+def test_crewai_runtime_runs_kickoff_and_converts_outputs(monkeypatch: pytest.MonkeyPatch) -> None:
+    from ai_software_factory.crews.runtime import CrewAIConfig, CrewAIRuntime, CrewRunRequest
+
+    _FakeCrew.created.clear()
+    monkeypatch.setattr(CrewAIRuntime, "_crewai_module", staticmethod(lambda: _FakeCrewAIModule))
+    runtime = CrewAIRuntime(CrewAIConfig(llm="configured-llm"))
+
+    result = runtime.run(
+        CrewRunRequest(
+            crew_id="runtime",
+            repository_path=Path.cwd(),
+            definition=_runtime_definition(),
+            inputs={"request": "generic"},
+        )
+    )
+
+    assert _FakeCrew.created[-1].kickoff_inputs == {"request": "generic"}
+    assert result.status == CrewExecutionStatus.COMPLETED
+    assert result.final_output == "final raw output"
+    assert [task.task_id for task in result.task_results] == ["first", "second"]
+    assert result.task_results[1].pydantic_output == {
+        "questions": [],
+        "can_continue_without_human": True,
+    }
+    assert result.usage_metrics == {"total_tokens": 3}
+
+
+def test_crewai_runtime_requires_llm_configuration() -> None:
+    from ai_software_factory.crews.runtime import CrewAIConfigurationError, CrewAIRuntime
+
+    with pytest.raises(CrewAIConfigurationError, match="explicit LLM"):
+        CrewAIRuntime()
+
+
+def test_crewai_runtime_converts_crewai_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    from ai_software_factory.crews.runtime import CrewAIConfig, CrewAIRuntime, CrewRunRequest
+
+    class FailingCrew(_FakeCrew):
+        def kickoff(self, *, inputs: dict[str, str]) -> _FakeCrewOutput:
+            raise RuntimeError("provider unavailable")
+
+    class FailingModule(_FakeCrewAIModule):
+        Crew = FailingCrew
+
+    monkeypatch.setattr(CrewAIRuntime, "_crewai_module", staticmethod(lambda: FailingModule))
+    runtime = CrewAIRuntime(CrewAIConfig(llm="configured-llm"))
+
+    result = runtime.run(
+        CrewRunRequest(
+            crew_id="runtime",
+            repository_path=Path.cwd(),
+            definition=_runtime_definition(),
+            inputs={},
+        )
+    )
+
+    assert result.status == CrewExecutionStatus.FAILED
+    assert result.error == "provider unavailable"
+    assert "CrewAI execution failed" in result.message
+
+
+def test_crewai_runtime_rejects_unknown_pydantic_output_model(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from ai_software_factory.crews.runtime import (
+        CrewAIConfig,
+        CrewAIConfigurationError,
+        CrewAIRuntime,
+    )
+
+    monkeypatch.setattr(CrewAIRuntime, "_crewai_module", staticmethod(lambda: _FakeCrewAIModule))
+    definition = _runtime_definition()
+    definition.tasks[1].output_model = "MissingModel"
+    runtime = CrewAIRuntime(CrewAIConfig(llm="configured-llm"))
+
+    with pytest.raises(CrewAIConfigurationError, match="Unknown Pydantic output model"):
+        runtime.build_crew(definition)
+
+
+@pytest.mark.crewai_integration
+@pytest.mark.skipif("CREWAI_API_KEY" not in __import__("os").environ, reason="requires API key")
+def test_crewai_runtime_optional_integration_requires_external_key() -> None:
+    pytest.skip(
+        "Optional smoke test placeholder; enable with a real configured LLM "
+        "in a secure environment."
+    )

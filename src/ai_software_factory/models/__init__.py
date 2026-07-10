@@ -18,12 +18,19 @@ from .structured_outputs import (
 )
 from .verdict import DiscoveryVerdict, QAVerdict, ReviewVerdict
 from .workflow import (
+    DesignDecision,
+    DevelopmentDecision,
+    FlowTransitionEvent,
+    FlowTransitionRecord,
     HumanDecisionRecord,
     HumanRequestRecord,
     HumanRequestStatus,
     HumanRequestType,
+    PlanningDecision,
+    ProductAcceptanceDecision,
     WorkflowState,
     WorkflowStatus,
+    WorkflowStep,
 )
 
 __all__ = [
@@ -50,4 +57,11 @@ __all__ = [
     "HumanRequestType",
     "WorkflowState",
     "WorkflowStatus",
+    "DesignDecision",
+    "PlanningDecision",
+    "DevelopmentDecision",
+    "ProductAcceptanceDecision",
+    "WorkflowStep",
+    "FlowTransitionEvent",
+    "FlowTransitionRecord",
 ]

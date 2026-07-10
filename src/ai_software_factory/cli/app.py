@@ -4,6 +4,8 @@ from pathlib import Path
 import typer
 from ai_software_factory import __version__
 from ai_software_factory.flows import FactoryFlow
+from ai_software_factory.models import DiscoveryVerdict
+from ai_software_factory.workflows import DiscoveryWorkflow
 from git import InvalidGitRepositoryError, NoSuchPathError, Repo
 
 app = typer.Typer(
@@ -77,3 +79,28 @@ def reject(request_id: str) -> None:
 @app.command("answer")
 def answer(request_id: str, answer_text: str) -> None:
     typer.echo(f"Answer recorded for {request_id}: {answer_text}")
+
+
+@app.command("discovery")
+def discovery(raw_request: str, repository_path: Path | None = None) -> None:
+    target = repository_path or Path.cwd()
+    result = DiscoveryWorkflow(target).start(raw_request)
+    typer.echo(f"{result.state.request_id} {result.state.feature_id} {result.state.status}")
+
+
+@app.command("discovery-answer")
+def discovery_answer(
+    request_id: str, answer_text: str, repository_path: Path | None = None
+) -> None:
+    target = repository_path or Path.cwd()
+    result = DiscoveryWorkflow(target).resume_with_answers(request_id, answer_text)
+    typer.echo(f"{result.state.request_id} {result.state.status}")
+
+
+@app.command("discovery-decision")
+def discovery_decision(
+    request_id: str, verdict: DiscoveryVerdict, repository_path: Path | None = None
+) -> None:
+    target = repository_path or Path.cwd()
+    state = DiscoveryWorkflow(target).record_product_owner_decision(request_id, verdict)
+    typer.echo(f"{state.request_id} {state.status}")

@@ -274,3 +274,165 @@ def test_yaml_resources_are_accessible_from_installed_package() -> None:
         base = importlib.resources.files("ai_software_factory.resources.crews").joinpath(crew_id)
         assert base.joinpath("agents.yaml").is_file()
         assert base.joinpath("tasks.yaml").is_file()
+
+
+_STRUCTURED_OUTPUT_MODELS = {
+    "DevelopmentManifest",
+    "DiscoveryQuestions",
+    "ProductOwnerDecision",
+    "QAReport",
+    "ReviewReport",
+}
+
+
+def test_executable_task_resources_are_specific_and_routable() -> None:
+    for cid in CREW_IDS:
+        definition = load_crew_definition(cid)
+        task_ids = {task.id for task in definition.tasks}
+        agent_ids = {agent.id for agent in definition.agents}
+        assert len(task_ids) == len(definition.tasks)
+        for index, task in enumerate(definition.tasks):
+            assert task.agent in agent_ids
+            assert "Execute " not in task.description
+            assert "Validated markdown or YAML artifact" not in task.expected_output
+            assert len(task.description) >= 300
+            assert len(task.expected_output) >= 80
+            assert task.markdown is True
+            assert task.context or index == 0 or cid == "review"
+            assert task.output_file or task.human_input
+            if task.output_model is not None:
+                assert task.output_model in _STRUCTURED_OUTPUT_MODELS
+        assert task_ids == {task.id for task in definition.tasks}
+
+
+def test_required_task_context_graphs_are_declared() -> None:
+    expected_contexts = {
+        "discovery": {
+            "inspect_project": [],
+            "analyse_request": ["inspect_project"],
+            "identify_open_questions": ["inspect_project", "analyse_request"],
+            "prepare_human_clarification": ["identify_open_questions"],
+            "write_feature_specification": [
+                "inspect_project",
+                "analyse_request",
+                "identify_open_questions",
+            ],
+            "prepare_product_owner_validation": ["write_feature_specification"],
+        },
+        "knowledge": {
+            "collect_project_changes": [],
+            "update_project_context": ["collect_project_changes"],
+            "update_glossary": ["collect_project_changes"],
+            "update_roadmap": ["collect_project_changes"],
+            "record_decisions": ["collect_project_changes"],
+            "update_changelog": ["collect_project_changes"],
+            "audit_project_knowledge": [
+                "collect_project_changes",
+                "update_project_context",
+                "update_glossary",
+                "update_roadmap",
+                "record_decisions",
+                "update_changelog",
+            ],
+        },
+        "design": {
+            "analyse_design_context": [],
+            "design_domain_changes": ["analyse_design_context"],
+            "design_user_experience": ["analyse_design_context"],
+            "assess_security_and_privacy": ["analyse_design_context"],
+            "design_technical_solution": [
+                "design_domain_changes",
+                "design_user_experience",
+                "assess_security_and_privacy",
+            ],
+            "propose_architecture_decisions": ["design_technical_solution"],
+            "review_design": [
+                "design_domain_changes",
+                "design_user_experience",
+                "assess_security_and_privacy",
+                "design_technical_solution",
+                "propose_architecture_decisions",
+            ],
+            "prepare_design_validation": ["review_design"],
+        },
+        "planning": {
+            "create_feature_delivery_plan": [],
+            "create_epic": ["create_feature_delivery_plan"],
+            "create_implementation_tasks": ["create_epic", "create_feature_delivery_plan"],
+            "create_test_plan": ["create_implementation_tasks"],
+            "validate_task_graph": ["create_implementation_tasks", "create_test_plan"],
+            "prepare_backlog_validation": ["validate_task_graph"],
+        },
+        "development": {
+            "inspect_task_context": [],
+            "prepare_implementation_plan": ["inspect_task_context"],
+            "implement_task": ["prepare_implementation_plan"],
+            "implement_tests": ["implement_task"],
+            "update_local_documentation": ["implement_task", "implement_tests"],
+            "run_development_checks": [
+                "implement_task",
+                "implement_tests",
+                "update_local_documentation",
+            ],
+            "self_review_implementation": ["run_development_checks"],
+            "prepare_implementation_manifest": ["self_review_implementation"],
+        },
+        "qa": {
+            "review_acceptance_criteria": [],
+            "build_acceptance_matrix": ["review_acceptance_criteria"],
+            "execute_targeted_tests": ["build_acceptance_matrix"],
+            "execute_regression_tests": ["execute_targeted_tests"],
+            "verify_non_functional_requirements": [
+                "execute_targeted_tests",
+                "execute_regression_tests",
+            ],
+            "analyse_test_results": [
+                "execute_targeted_tests",
+                "execute_regression_tests",
+                "verify_non_functional_requirements",
+            ],
+            "write_qa_report": ["analyse_test_results"],
+        },
+        "review": {
+            "review_code_quality": [],
+            "review_architecture_compliance": [],
+            "review_security": [],
+            "review_delivery_readiness": [],
+            "consolidate_review_findings": [
+                "review_code_quality",
+                "review_architecture_compliance",
+                "review_security",
+                "review_delivery_readiness",
+            ],
+            "issue_final_review": ["consolidate_review_findings"],
+        },
+    }
+    for crew_id, contexts in expected_contexts.items():
+        tasks = {task.id: task for task in load_crew_definition(crew_id).tasks}
+        assert set(tasks) == set(contexts)
+        for task_id, context in contexts.items():
+            assert tasks[task_id].context == context
+
+
+def test_human_and_structured_tasks_are_explicit() -> None:
+    human_tasks = set()
+    structured_tasks = {}
+    for cid in CREW_IDS:
+        for task in load_crew_definition(cid).tasks:
+            if task.human_input:
+                human_tasks.add(f"{cid}.{task.id}")
+            if task.output_model:
+                structured_tasks[f"{cid}.{task.id}"] = task.output_model
+    assert human_tasks == {
+        "discovery.prepare_human_clarification",
+        "discovery.prepare_product_owner_validation",
+        "design.prepare_design_validation",
+        "planning.prepare_backlog_validation",
+    }
+    assert structured_tasks == {
+        "discovery.identify_open_questions": "DiscoveryQuestions",
+        "discovery.prepare_product_owner_validation": "ProductOwnerDecision",
+        "development.prepare_implementation_manifest": "DevelopmentManifest",
+        "qa.write_qa_report": "QAReport",
+        "review.issue_final_review": "ReviewReport",
+    }

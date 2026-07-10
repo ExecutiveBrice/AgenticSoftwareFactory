@@ -1,31 +1,59 @@
 tasks:
   inspect_project:
-    description: Execute inspect_project for the discovery stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: repository tree, existing project documentation, configuration files, and the initial human request. Analyse the current repository structure, existing artefacts, constraints, and evidence relevant to the request. Do not change code or decide product scope; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with sections Inputs, Findings, Constraints, Evidence, Risks, and Artefacts. Completion criteria: all relevant existing information is cited by path or marked unavailable, and no open product decision is guessed. Expected artefacts or paths: project/discovery/<request-id>/project-inspection.md.'
+    expected_output: Project inspection report with repository facts, relevant files, constraints, risks, and unavailable inputs.
     agent: repository_analyst
     context: []
+    markdown: true
+    output_file: project/discovery/{request_id}/project-inspection.md
+    create_directory: true
   analyse_request:
-    description: Execute analyse_request for the discovery stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: initial human request and inspect_project findings. Analyse the requested change, implied goals, explicit constraints, acceptance signals, and ambiguity. Do not expand scope beyond the request or resolve ambiguities without evidence; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown with sections Request Summary, In Scope, Out of Scope, Assumptions, Acceptance Signals, and Ambiguities. Completion criteria: scope is traceable to request text and repository evidence, with assumptions separated from facts. Expected artefacts or paths: project/discovery/<request-id>/request-analysis.md.'
+    expected_output: Request analysis that separates confirmed scope, exclusions, assumptions, ambiguities, and acceptance signals.
     agent: business_analyst
-    context: []
+    context:
+    - inspect_project
+    markdown: true
+    output_file: project/discovery/{request_id}/request-analysis.md
   identify_open_questions:
-    description: Execute identify_open_questions for the discovery stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: inspect_project and analyse_request outputs. Analyse unresolved questions that block deterministic specification, routing, or validation. Do not ask questions answerable from existing context, bundle unrelated issues, or include optional curiosity questions; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: structured JSON matching DiscoveryQuestions plus a concise markdown summary. Completion criteria: each question has an id, reason, impact, options when neutral options exist, and a blocking flag. Expected artefacts or paths: structured output for Flow routing and optional project/discovery/<request-id>/open-questions.md.'
+    expected_output: DiscoveryQuestions containing only unresolved questions required for safe continuation, plus a short human-readable summary.
     agent: requirements_reviewer
-    context: []
+    context:
+    - inspect_project
+    - analyse_request
+    markdown: true
+    output_file: project/discovery/{request_id}/open-questions.md
+    output_model: DiscoveryQuestions
+    guardrail: Validate that every blocking question references a missing decision not present in context.
   prepare_human_clarification:
-    description: Execute prepare_human_clarification for the discovery stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: identified open questions. Analyse which questions require direct Product Owner clarification and how to present them neutrally. Do not request implementation work, make every task interactive, or hide the option to suspend the Flow; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown clarification request with numbered questions and neutral options. Completion criteria: only blocking questions are included and the Flow can either pause or CrewAI can request human input. Expected artefacts or paths: human validation payload for clarification.'
+    expected_output: Human clarification request listing blocking questions, rationale, neutral options, and Flow suspension instructions.
     agent: discovery_writer
-    context: []
+    context:
+    - identify_open_questions
+    markdown: true
+    human_input: true
+    guardrail: Human input is allowed only when blocking DiscoveryQuestions exist.
   write_feature_specification:
-    description: Execute write_feature_specification for the discovery stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: project inspection, request analysis, open questions, and any provided clarifications. Analyse the validated feature scope, requirements, non-goals, acceptance criteria, risks, and traceability. Do not include unresolved assumptions as facts or prescribe implementation details prematurely; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: markdown specification with sections Overview, Scope, Requirements, Acceptance Criteria, Non-goals, Risks, Dependencies, Traceability. Completion criteria: requirements are testable, ambiguities are resolved or explicitly deferred, and downstream crews can design from it. Expected artefacts or paths: project/specifications/<feature-id>.md.'
+    expected_output: Feature specification with testable requirements, acceptance criteria, non-goals, risks, dependencies, and traceability.
     agent: discovery_writer
-    context: []
+    context:
+    - inspect_project
+    - analyse_request
+    - identify_open_questions
+    markdown: true
+    output_file: project/specifications/{feature_id}.md
+    create_directory: true
   prepare_product_owner_validation:
-    description: Execute prepare_product_owner_validation for the discovery stage.
-    expected_output: Validated markdown or YAML artifact.
+    description: 'Use the available inputs: feature specification. Analyse whether the specification is ready for Product Owner approval, rejection, or changes. Do not start design or planning, make unrelated recommendations, or remove Flow suspension capability; do not invent missing facts; do not reference any specific business domain, programming language, or framework; do not modify files outside the authorized artefacts. Output format: structured JSON matching ProductOwnerDecision plus markdown approval summary. Completion criteria: decision options are explicit, artifact paths are listed, and unresolved risks are visible. Expected artefacts or paths: ProductOwnerDecision for deterministic routing and validation request.'
+    expected_output: ProductOwnerDecision containing decision options, referenced specification path, risks, and requested Product Owner action.
     agent: discovery_writer
-    context: []
+    context:
+    - write_feature_specification
+    markdown: true
+    output_file: project/discovery/{request_id}/product-owner-validation.md
+    output_model: ProductOwnerDecision
+    human_input: true
+    guardrail: Validation must reference the produced feature specification.

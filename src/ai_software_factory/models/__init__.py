@@ -8,6 +8,14 @@ from .crew import (
     HumanValidationResponse,
     TaskDefinition,
 )
+from .structured_outputs import (
+    DevelopmentManifest,
+    DiscoveryQuestion,
+    DiscoveryQuestions,
+    ProductOwnerDecision,
+    QAReport,
+    ReviewReport,
+)
 from .verdict import DiscoveryVerdict, QAVerdict, ReviewVerdict
 from .workflow import WorkflowState, WorkflowStatus
 
@@ -20,6 +28,12 @@ __all__ = [
     "HumanValidationRequest",
     "HumanValidationResponse",
     "TaskDefinition",
+    "DevelopmentManifest",
+    "DiscoveryQuestion",
+    "DiscoveryQuestions",
+    "ProductOwnerDecision",
+    "QAReport",
+    "ReviewReport",
     "DiscoveryVerdict",
     "QAVerdict",
     "ReviewVerdict",

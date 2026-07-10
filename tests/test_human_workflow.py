@@ -19,39 +19,35 @@ def _state(tmp_path: Path, status: WorkflowStatus) -> WorkflowState:
     return flow.transition(state, status)
 
 
-def test_clarification_answer_is_persisted_and_resumes_to_approval(tmp_path: Path) -> None:
+def test_clarification_answer_is_persisted_and_resumes_to_discovery(tmp_path: Path) -> None:
     state = _state(tmp_path, WorkflowStatus.WAITING_FOR_CLARIFICATION)
 
     resumed = FactoryFlow(tmp_path).answer(state.request_id, "generic answer")
 
-    assert resumed.status == WorkflowStatus.WAITING_FOR_SPEC_APPROVAL
+    assert resumed.status == WorkflowStatus.DISCOVERY_RUNNING
     assert resumed.pending_questions == []
     assert resumed.human_requests[0].status == HumanRequestStatus.ANSWERED
     assert resumed.human_requests[0].decisions[0].answer == "generic answer"
-    assert (
-        StateStore(tmp_path).load(state.request_id).status
-        == WorkflowStatus.WAITING_FOR_SPEC_APPROVAL
-    )
+    assert StateStore(tmp_path).load(state.request_id).status == WorkflowStatus.DISCOVERY_RUNNING
 
 
-def test_approval_is_persisted_and_completes_workflow(tmp_path: Path) -> None:
+def test_spec_approval_runs_knowledge_and_design(tmp_path: Path) -> None:
     state = _state(tmp_path, WorkflowStatus.WAITING_FOR_SPEC_APPROVAL)
 
     approved = FactoryFlow(tmp_path).approve(state.request_id)
 
-    assert approved.status == WorkflowStatus.COMPLETED
+    assert approved.status == WorkflowStatus.DESIGN_RUNNING
     assert approved.human_requests[0].status == HumanRequestStatus.APPROVED
 
 
-def test_change_request_is_persisted_and_waits_for_clarification(tmp_path: Path) -> None:
+def test_change_request_is_persisted_and_returns_to_discovery(tmp_path: Path) -> None:
     state = _state(tmp_path, WorkflowStatus.WAITING_FOR_SPEC_APPROVAL)
 
     changed = FactoryFlow(tmp_path).request_changes(state.request_id, "adjust generic scope")
 
-    assert changed.status == WorkflowStatus.WAITING_FOR_CLARIFICATION
+    assert changed.status == WorkflowStatus.DISCOVERY_RUNNING
     assert changed.pending_questions == ["adjust generic scope"]
     assert changed.human_requests[0].status == HumanRequestStatus.CHANGES_REQUESTED
-    assert changed.human_requests[1].status == HumanRequestStatus.PENDING
 
 
 def test_rejection_is_persisted(tmp_path: Path) -> None:
@@ -119,7 +115,7 @@ def test_two_independent_requests_require_matching_human_request_id(tmp_path: Pa
         state.request_id, human_request_id=f"{state.request_id}-HUM-extra"
     )
 
-    assert decided.status == WorkflowStatus.COMPLETED
+    assert decided.status == WorkflowStatus.DESIGN_RUNNING
     assert decided.human_requests[1].status == HumanRequestStatus.APPROVED
 
 

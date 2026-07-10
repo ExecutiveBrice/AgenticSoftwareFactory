@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Any
 
 from ai_software_factory.models import (
+    FlowTransitionEvent,
+    FlowTransitionRecord,
     HumanDecisionRecord,
     HumanRequestRecord,
     HumanRequestStatus,
@@ -66,6 +68,7 @@ def _workflow_state_from_json(payload: dict[str, Any]) -> WorkflowState:
     data["human_requests"] = [
         _human_request_from_json(item) for item in data.get("human_requests", [])
     ]
+    data["transitions"] = [_flow_transition_from_json(item) for item in data.get("transitions", [])]
     for date_key in ("created_at", "updated_at"):
         if isinstance(data.get(date_key), str):
             data[date_key] = datetime.fromisoformat(data[date_key])
@@ -93,3 +96,15 @@ def _human_decision_from_json(payload: object) -> HumanDecisionRecord:
     if isinstance(data.get("date"), str):
         data["date"] = datetime.fromisoformat(data["date"])
     return HumanDecisionRecord.model_validate(data)
+
+
+def _flow_transition_from_json(payload: object) -> FlowTransitionRecord:
+    if not isinstance(payload, dict):
+        raise ValueError("Flow transition must be a JSON object")
+    data = dict(payload)
+    data["event"] = FlowTransitionEvent(str(data["event"]))
+    data["source"] = WorkflowStatus(str(data["source"]))
+    data["target"] = WorkflowStatus(str(data["target"]))
+    if isinstance(data.get("date"), str):
+        data["date"] = datetime.fromisoformat(data["date"])
+    return FlowTransitionRecord.model_validate(data)

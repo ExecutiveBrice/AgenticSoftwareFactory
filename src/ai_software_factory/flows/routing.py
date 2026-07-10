@@ -19,9 +19,11 @@ VALID_TRANSITIONS: dict[WorkflowStatus, set[WorkflowStatus]] = {
         WorkflowStatus.COMPLETED,
     },
     WorkflowStatus.DESIGN_RUNNING: {
+        WorkflowStatus.DESIGN_RUNNING,
         WorkflowStatus.WAITING_FOR_DESIGN_APPROVAL,
         WorkflowStatus.PLANNING_RUNNING,
         WorkflowStatus.FAILED,
+        WorkflowStatus.BLOCKED,
     },
     WorkflowStatus.WAITING_FOR_DESIGN_APPROVAL: {
         WorkflowStatus.PLANNING_RUNNING,
@@ -29,7 +31,9 @@ VALID_TRANSITIONS: dict[WorkflowStatus, set[WorkflowStatus]] = {
         WorkflowStatus.REJECTED,
     },
     WorkflowStatus.PLANNING_RUNNING: {
+        WorkflowStatus.PLANNING_RUNNING,
         WorkflowStatus.WAITING_FOR_BACKLOG_APPROVAL,
+        WorkflowStatus.REJECTED,
         WorkflowStatus.FAILED,
     },
     WorkflowStatus.WAITING_FOR_BACKLOG_APPROVAL: {
@@ -37,7 +41,11 @@ VALID_TRANSITIONS: dict[WorkflowStatus, set[WorkflowStatus]] = {
         WorkflowStatus.PLANNING_RUNNING,
         WorkflowStatus.REJECTED,
     },
-    WorkflowStatus.DEVELOPMENT_RUNNING: {WorkflowStatus.QA_RUNNING, WorkflowStatus.FAILED},
+    WorkflowStatus.DEVELOPMENT_RUNNING: {
+        WorkflowStatus.DEVELOPMENT_RUNNING,
+        WorkflowStatus.QA_RUNNING,
+        WorkflowStatus.FAILED,
+    },
     WorkflowStatus.QA_RUNNING: {
         WorkflowStatus.REVIEW_RUNNING,
         WorkflowStatus.DEVELOPMENT_RUNNING,
@@ -56,7 +64,10 @@ VALID_TRANSITIONS: dict[WorkflowStatus, set[WorkflowStatus]] = {
     },
     WorkflowStatus.COMPLETED: set(),
     WorkflowStatus.REJECTED: set(),
-    WorkflowStatus.BLOCKED: set(),
+    WorkflowStatus.BLOCKED: {
+        WorkflowStatus.DESIGN_RUNNING,
+        WorkflowStatus.WAITING_FOR_PRODUCT_ACCEPTANCE,
+    },
     WorkflowStatus.FAILED: set(),
 }
 
